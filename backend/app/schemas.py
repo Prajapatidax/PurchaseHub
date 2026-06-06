@@ -125,6 +125,12 @@ class QuotationCreate(BaseModel):
     price: float
     delivery_days: int
     notes: Optional[str] = None
+    vendor_id: Optional[int] = None
+
+class QuotationUpdate(BaseModel):
+    price: Optional[float] = None
+    delivery_days: Optional[int] = None
+    notes: Optional[str] = None
 
 class QuotationResponse(QuotationBase):
     id: int
@@ -132,6 +138,7 @@ class QuotationResponse(QuotationBase):
     vendor_id: int
     submitted_at: datetime
     vendor: VendorResponse
+    status: Optional[str] = "Pending Review"
 
     class Config:
         from_attributes = True

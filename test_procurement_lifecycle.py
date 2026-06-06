@@ -397,5 +397,65 @@ class TestProcurementLifecycle(unittest.TestCase):
         self.assertTrue(any("APPROVED RFQ" in act or "UPDATED" in act or "PO" in act or "Invoice" in act for act in actions))
         print(f"Verified {len(logs)} activity logs. Last action: {logs[0]['action']}")
 
+    def test_08_quotations_crud_and_status(self):
+        print("\n--- Running Test 08: Quotations Ledger CRUD and Status Verification ---")
+        officer_token = self.get_token("officer@vendorbridge.com", "officerpassword")
+        officer_headers = {"Authorization": f"Bearer {officer_token}"}
+        
+        # 1. Fetch vendor and RFQ for manual quote creation
+        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell Technologies").first()
+        rfq = self.db.query(models.RFQ).filter(models.RFQ.title == "Corporate Laptops Batch A").first()
+        self.assertIsNotNone(dell)
+        self.assertIsNotNone(rfq)
+
+        # 2. Create quotation manually by Procurement Officer
+        create_payload = {
+            "rfq_id": rfq.id,
+            "vendor_id": dell.id,
+            "price": 13500.0,
+            "delivery_days": 8,
+            "notes": "Officially created quotation on behalf of Dell"
+        }
+        create_resp = self.client.post("/api/quotations/", json=create_payload, headers=officer_headers)
+        self.assertEqual(create_resp.status_code, 200)
+        quote_data = create_resp.json()
+        quote_id = quote_data["id"]
+        self.assertEqual(quote_data["price"], 13500.0)
+        self.assertEqual(quote_data["status"], "Not Selected")
+
+        # 3. Retrieve single quotation & verify dynamic status
+        get_resp = self.client.get(f"/api/quotations/{quote_id}", headers=officer_headers)
+        self.assertEqual(get_resp.status_code, 200)
+        self.assertEqual(get_resp.json()["status"], "Not Selected")
+
+        # 4. Update quotation using PUT
+        update_payload = {
+            "price": 13000.0,
+            "delivery_days": 7,
+            "notes": "Updated proposal price details"
+        }
+        update_resp = self.client.put(f"/api/quotations/{quote_id}", json=update_payload, headers=officer_headers)
+        self.assertEqual(update_resp.status_code, 200)
+        self.assertEqual(update_resp.json()["price"], 13000.0)
+        self.assertEqual(update_resp.json()["delivery_days"], 7)
+
+        # 5. Verify security: another vendor cannot edit or delete this quotation
+        hp_token = self.get_token("partners@hp.com", "hppassword")
+        hp_headers = {"Authorization": f"Bearer {hp_token}"}
+        bad_edit_resp = self.client.put(f"/api/quotations/{quote_id}", json=update_payload, headers=hp_headers)
+        self.assertEqual(bad_edit_resp.status_code, 403)
+
+        bad_delete_resp = self.client.delete(f"/api/quotations/{quote_id}", headers=hp_headers)
+        self.assertEqual(bad_delete_resp.status_code, 403)
+
+        # 6. Delete quotation using DELETE
+        delete_resp = self.client.delete(f"/api/quotations/{quote_id}", headers=officer_headers)
+        self.assertEqual(delete_resp.status_code, 200)
+        self.assertEqual(delete_resp.json()["message"], f"Quotation #{quote_id} deleted successfully.")
+
+        # 7. Check that it is deleted
+        get_deleted_resp = self.client.get(f"/api/quotations/{quote_id}", headers=officer_headers)
+        self.assertEqual(get_deleted_resp.status_code, 404)
+
 if __name__ == "__main__":
     unittest.main()

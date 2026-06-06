@@ -110,6 +110,9 @@ function wireUpFormHandlers() {
     const quoteForm = document.getElementById('quote-form');
     if (quoteForm) quoteForm.addEventListener('submit', handleQuoteSubmit);
 
+    const officerQuoteForm = document.getElementById('officer-quote-form');
+    if (officerQuoteForm) officerQuoteForm.addEventListener('submit', saveOfficerQuotation);
+
     const approvalForm = document.getElementById('approval-form');
     if (approvalForm) approvalForm.addEventListener('submit', handleApprovalSubmit);
 
@@ -210,9 +213,17 @@ function triggerViewLoader(viewName) {
             break;
         case 'quotations':
             if (state.user && state.user.role === 'Vendor') {
-                loadVendorPortal();
+                await loadVendorPortal();
             } else {
-                loadAllQuotations();
+                await loadAllQuotations();
+            }
+            const pathname = window.location.pathname;
+            if (pathname === '/quotations/new') {
+                openOfficerQuoteModal();
+            } else if (pathname.startsWith('/quotations/view/')) {
+                const parts = pathname.split('/');
+                const id = parseInt(parts[parts.length - 1]);
+                if (id) viewQuotation(id);
             }
             break;
         case 'comparison':
@@ -571,6 +582,11 @@ async function loadRFQs() {
 
 // 4. Vendor Portal Quotations (Vendor role only)
 async function loadVendorPortal() {
+    const vPortal = document.getElementById('vendor-portal-view');
+    if (vPortal) vPortal.classList.remove('hidden');
+    const oPortal = document.getElementById('officer-quotations-view');
+    if (oPortal) oPortal.classList.add('hidden');
+
     const assignedRFQs = await apiRequest('/rfqs/');
     const portalAssigned = document.getElementById('portal-assigned-rfqs');
     if (portalAssigned) {
@@ -635,32 +651,269 @@ async function loadVendorPortal() {
 
 // 4.1 All Quotations Ledger (Admin/Procurement Officer/Manager view of /quotations)
 async function loadAllQuotations() {
+    const oPortal = document.getElementById('officer-quotations-view');
+    if (oPortal) oPortal.classList.remove('hidden');
+    const vPortal = document.getElementById('vendor-portal-view');
+    if (vPortal) vPortal.classList.add('hidden');
+
     const quotes = await apiRequest('/quotations/');
+    state.cachedQuotations = quotes || [];
+
+    // Populate vendor filter dropdown
+    const filterVendor = document.getElementById('q-filter-vendor');
+    if (filterVendor) {
+        filterVendor.innerHTML = '<option value="">All Vendors</option>';
+        const uniqueVendors = {};
+        state.cachedQuotations.forEach(q => {
+            if (q.vendor) {
+                uniqueVendors[q.vendor.id] = q.vendor.company_name;
+            }
+        });
+        Object.entries(uniqueVendors).forEach(([id, name]) => {
+            const opt = document.createElement('option');
+            opt.value = id;
+            opt.textContent = name;
+            filterVendor.appendChild(opt);
+        });
+    }
+
+    renderQuotationsLedger(state.cachedQuotations);
+}
+
+function renderQuotationsLedger(quotes) {
     const tbody = document.querySelector('#quotations-table tbody');
     if (!tbody) return;
     tbody.innerHTML = '';
     
     if (!quotes || quotes.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-slate-400">No quotation proposals recorded in ledger.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="py-8 text-center text-slate-400">No quotation proposals recorded in ledger.</td></tr>`;
         return;
     }
     
     quotes.forEach(q => {
+        const statusBadge = `<erp-status-badge status="${q.status || 'Pending Review'}"></erp-status-badge>`;
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 transition-colors';
+        tr.className = 'hover:bg-slate-50 transition-colors border-b border-slate-100';
         tr.innerHTML = `
             <td class="py-4 px-6 font-bold text-slate-800 font-mono">Q-${q.id}</td>
             <td class="py-4 px-6 font-mono text-xs text-indigo-600 font-semibold">RFQ #${q.rfq_id}</td>
-            <td class="py-4 px-6 font-semibold text-slate-800">${q.vendor.company_name}</td>
+            <td class="py-4 px-6 font-semibold text-slate-800">${q.vendor ? q.vendor.company_name : 'Unknown'}</td>
             <td class="py-4 px-6 font-bold text-slate-900">$${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
             <td class="py-4 px-6 text-slate-600">${q.delivery_days} Days</td>
+            <td class="py-4 px-6">${statusBadge}</td>
             <td class="py-4 px-6 text-slate-500 text-xs">${new Date(q.submitted_at).toLocaleDateString()}</td>
-            <td class="py-4 px-6 text-right">
-                 <button onclick="window.router.navigate('/comparison/${q.rfq_id}')" class="text-brand-700 hover:text-brand-600 font-bold text-xs"><i class="fa-solid fa-scale-balanced mr-1"></i> Compare</button>
+            <td class="py-4 px-6 text-right space-x-2 whitespace-nowrap">
+                 <button onclick="viewQuotation(${q.id})" class="text-slate-600 hover:text-slate-800 font-semibold text-xs"><i class="fa-solid fa-eye mr-0.5"></i> View</button>
+                 <button onclick="openOfficerQuoteModal(${q.id})" class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs"><i class="fa-solid fa-pen mr-0.5"></i> Edit</button>
+                 <button onclick="deleteQuotation(${q.id})" class="text-rose-600 hover:text-rose-800 font-semibold text-xs"><i class="fa-solid fa-trash mr-0.5"></i> Delete</button>
             </td>
         `;
         tbody.appendChild(tr);
     });
+}
+
+function filterQuotationsList() {
+    if (!state.cachedQuotations) return;
+    
+    const searchVal = (document.getElementById('q-search')?.value || '').toLowerCase().trim();
+    const statusVal = document.getElementById('q-filter-status')?.value || '';
+    const vendorVal = document.getElementById('q-filter-vendor')?.value || '';
+    
+    let filtered = state.cachedQuotations;
+    
+    if (searchVal) {
+        filtered = filtered.filter(q => {
+            const qIdStr = `q-${q.id}`.toLowerCase();
+            const rfqIdStr = `rfq #${q.rfq_id}`.toLowerCase();
+            const vendorName = (q.vendor?.company_name || '').toLowerCase();
+            const notes = (q.notes || '').toLowerCase();
+            return qIdStr.includes(searchVal) || rfqIdStr.includes(searchVal) || vendorName.includes(searchVal) || notes.includes(searchVal);
+        });
+    }
+    
+    if (statusVal) {
+        filtered = filtered.filter(q => q.status === statusVal);
+    }
+    
+    if (vendorVal) {
+        filtered = filtered.filter(q => q.vendor && String(q.vendor.id) === vendorVal);
+    }
+    
+    renderQuotationsLedger(filtered);
+}
+
+async function openOfficerQuoteModal(quoteId = null) {
+    const modal = document.getElementById('officer-quote-modal');
+    if (!modal) return;
+    
+    // Fetch and populate vendors
+    const vendors = await apiRequest('/vendors/');
+    const vendorSelect = document.getElementById('oq-vendor-id');
+    if (vendorSelect) {
+        vendorSelect.innerHTML = '<option value="">Select Vendor Partner...</option>';
+        if (vendors) {
+            vendors.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.id;
+                opt.textContent = `${v.company_name} (${v.category})`;
+                vendorSelect.appendChild(opt);
+            });
+        }
+    }
+    
+    // Fetch and populate RFQs
+    const rfqs = await apiRequest('/rfqs/');
+    const rfqSelect = document.getElementById('oq-rfq-id');
+    if (rfqSelect) {
+        rfqSelect.innerHTML = '<option value="">Select RFQ Reference...</option>';
+        if (rfqs) {
+            rfqs.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = `RFQ #${r.id} - ${r.title} (Qty: ${r.quantity})`;
+                rfqSelect.appendChild(opt);
+            });
+        }
+    }
+
+    const form = document.getElementById('officer-quote-form');
+    if (form) form.reset();
+
+    const titleEl = modal.querySelector('.modal-title');
+
+    if (quoteId) {
+        if (titleEl) titleEl.textContent = 'Edit Quotation Proposal';
+        const q = await apiRequest(`/quotations/${quoteId}`);
+        if (q) {
+            document.getElementById('oq-id').value = q.id;
+            if (vendorSelect) vendorSelect.value = q.vendor_id;
+            if (rfqSelect) rfqSelect.value = q.rfq_id;
+            document.getElementById('oq-price').value = q.price;
+            document.getElementById('oq-days').value = q.delivery_days;
+            document.getElementById('oq-notes').value = q.notes || '';
+            if (vendorSelect) vendorSelect.disabled = true;
+            if (rfqSelect) rfqSelect.disabled = true;
+        }
+    } else {
+        if (titleEl) titleEl.textContent = 'Create Quotation Proposal';
+        document.getElementById('oq-id').value = '';
+        if (vendorSelect) vendorSelect.disabled = false;
+        if (rfqSelect) rfqSelect.disabled = false;
+        
+        if (window.location.pathname !== '/quotations/new') {
+            history.pushState(null, '', '/quotations/new');
+        }
+    }
+    
+    modal.open();
+}
+
+function closeOfficerQuoteModal() {
+    const modal = document.getElementById('officer-quote-modal');
+    if (modal) modal.close();
+    if (window.location.pathname !== '/quotations') {
+        history.pushState(null, '', '/quotations');
+    }
+}
+
+async function saveOfficerQuotation(e) {
+    e.preventDefault();
+    const quoteId = document.getElementById('oq-id').value;
+    const vendorId = parseInt(document.getElementById('oq-vendor-id').value);
+    const rfqId = parseInt(document.getElementById('oq-rfq-id').value);
+    const price = parseFloat(document.getElementById('oq-price').value);
+    const deliveryDays = parseInt(document.getElementById('oq-days').value);
+    const notes = document.getElementById('oq-notes').value;
+
+    const payload = {
+        rfq_id: rfqId,
+        price: price,
+        delivery_days: deliveryDays,
+        notes: notes
+    };
+
+    let result;
+    if (quoteId) {
+        result = await apiRequest(`/quotations/${quoteId}`, {
+            method: 'PUT',
+            body: {
+                price: price,
+                delivery_days: deliveryDays,
+                notes: notes
+            }
+        });
+    } else {
+        payload.vendor_id = vendorId;
+        result = await apiRequest('/quotations/', {
+            method: 'POST',
+            body: payload
+        });
+    }
+
+    if (result) {
+        showToast(quoteId ? 'Quotation updated successfully!' : 'Quotation created successfully!', 'success');
+        closeOfficerQuoteModal();
+        loadAllQuotations();
+    }
+}
+
+async function deleteQuotation(quoteId) {
+    if (!confirm("Are you sure you want to delete this quotation bid? This action is irreversible.")) return;
+    
+    const result = await apiRequest(`/quotations/${quoteId}`, {
+        method: 'DELETE'
+    });
+    
+    if (result) {
+        showToast("Quotation deleted successfully.", "success");
+        loadAllQuotations();
+    }
+}
+
+async function viewQuotation(quoteId) {
+    const q = await apiRequest(`/quotations/${quoteId}`);
+    if (!q) return;
+
+    const modal = document.getElementById('view-quote-modal');
+    if (!modal) return;
+
+    document.getElementById('vq-ref-id').textContent = `Q-${q.id}`;
+    
+    const statusEl = document.getElementById('vq-status');
+    if (statusEl) {
+        statusEl.textContent = q.status || 'Pending Review';
+        statusEl.className = 'px-2 py-0.5 rounded text-[10px] font-bold ';
+        if (q.status && (q.status.includes('Won') || q.status.includes('Approved'))) {
+            statusEl.className += 'bg-emerald-50 text-emerald-700';
+        } else if (q.status && q.status.includes('Rejected')) {
+            statusEl.className += 'bg-rose-50 text-rose-700';
+        } else if (q.status && q.status.includes('Selected')) {
+            statusEl.className += 'bg-amber-50 text-amber-700';
+        } else {
+            statusEl.className += 'bg-slate-100 text-slate-700';
+        }
+    }
+
+    document.getElementById('vq-vendor').textContent = q.vendor ? q.vendor.company_name : 'N/A';
+    document.getElementById('vq-rfq').textContent = `RFQ #${q.rfq_id}`;
+    document.getElementById('vq-price').textContent = `$${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    document.getElementById('vq-days').textContent = `${q.delivery_days} Days`;
+    document.getElementById('vq-date').textContent = new Date(q.submitted_at).toLocaleString();
+    document.getElementById('vq-notes').textContent = q.notes || 'No notes provided.';
+
+    if (window.location.pathname !== `/quotations/view/${quoteId}`) {
+        history.pushState(null, '', `/quotations/view/${quoteId}`);
+    }
+
+    modal.open();
+}
+
+function closeViewQuoteModal() {
+    const modal = document.getElementById('view-quote-modal');
+    if (modal) modal.close();
+    if (window.location.pathname !== '/quotations') {
+        history.pushState(null, '', '/quotations');
+    }
 }
 
 // 5. Quotations Compare Panel
