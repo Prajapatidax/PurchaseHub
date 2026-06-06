@@ -1,4 +1,14 @@
-// VendorBridge ERP - Frontend Application Controller
+// PurchaseHub ERP - Frontend Application Controller
+
+// Global App Preferences / Settings
+const settingsState = {
+    companyName: localStorage.getItem('settings_company_name') || 'My Company (San Francisco)',
+    companyGst: localStorage.getItem('settings_company_gst') || 'GST-US940219',
+    autoPublish: localStorage.getItem('settings_auto_publish') !== 'false',
+    requireApproval: localStorage.getItem('settings_require_approval') !== 'false',
+    autoPO: localStorage.getItem('settings_auto_po') !== 'false',
+    approvalLimit: parseFloat(localStorage.getItem('settings_approval_limit')) || 10000.0
+};
 
 // Global App State
 const state = {
@@ -14,6 +24,191 @@ const state = {
     cachedVendors: [],
     emails: []
 };
+
+// ================= RECHARTS REACT CHART ENGINE =================
+function renderSpendTrendChart(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } = window.Recharts;
+    
+    const element = React.createElement(
+        ResponsiveContainer,
+        { width: "100%", height: "100%" },
+        React.createElement(
+            LineChart,
+            { data: data, margin: { top: 10, right: 10, left: -15, bottom: 0 } },
+            React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#F3F4F6" }),
+            React.createElement(XAxis, { dataKey: "month", tick: { fill: '#6B7280', fontSize: 10 } }),
+            React.createElement(YAxis, { tick: { fill: '#6B7280', fontSize: 10 } }),
+            React.createElement(Tooltip, {
+                contentStyle: {
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                }
+            }),
+            React.createElement(Line, {
+                type: "monotone",
+                dataKey: "spend",
+                stroke: "#714B67",
+                strokeWidth: 2,
+                activeDot: { r: 6 },
+                name: "Spend ($)"
+            })
+        )
+    );
+    
+    const root = ReactDOM.createRoot(container);
+    root.render(element);
+    state.charts.spendTrend = root;
+}
+
+function renderSpendCategoryChart(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } = window.Recharts;
+    const COLORS = ['#714B67', '#875A7B', '#B08EAA', '#3B82F6', '#22C55E', '#F59E0B'];
+    
+    const element = React.createElement(
+        ResponsiveContainer,
+        { width: "100%", height: "100%" },
+        React.createElement(
+            PieChart,
+            {},
+            React.createElement(
+                Pie,
+                {
+                    data: data,
+                    cx: "50%",
+                    cy: "50%",
+                    innerRadius: 60,
+                    outerRadius: 85,
+                    paddingAngle: 3,
+                    dataKey: "spend",
+                    nameKey: "category"
+                },
+                data.map((entry, index) => 
+                    React.createElement(Cell, { key: `cell-${index}`, fill: COLORS[index % COLORS.length] })
+                )
+            ),
+            React.createElement(Tooltip, {
+                contentStyle: {
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                },
+                formatter: (value) => `$${value.toLocaleString()}`
+            }),
+            React.createElement(Legend, {
+                verticalAlign: "bottom",
+                height: 36,
+                iconSize: 10,
+                iconType: "circle",
+                wrapperStyle: { fontSize: '11px', color: '#4B5563' }
+            })
+        )
+    );
+    
+    const root = ReactDOM.createRoot(container);
+    root.render(element);
+    state.charts.spendCategory = root;
+}
+
+function renderVendorPerformanceChart(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } = window.Recharts;
+    
+    const element = React.createElement(
+        ResponsiveContainer,
+        { width: "100%", height: "100%" },
+        React.createElement(
+            BarChart,
+            { data: data, margin: { top: 10, right: 10, left: -20, bottom: 0 } },
+            React.createElement(CartesianGrid, { strokeDasharray: "3 3", stroke: "#F3F4F6" }),
+            React.createElement(XAxis, { dataKey: "company_name", tick: { fill: '#6B7280', fontSize: 10 } }),
+            React.createElement(YAxis, { domain: [0, 5], tick: { fill: '#6B7280', fontSize: 10 } }),
+            React.createElement(Tooltip, {
+                contentStyle: {
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                }
+            }),
+            React.createElement(
+                Bar,
+                { dataKey: "rating", name: "Quality Rating", fill: "#714B67", radius: [4, 4, 0, 0] },
+                data.map((entry, index) => 
+                    React.createElement(Cell, { key: `cell-${index}`, fill: entry.rating >= 4.5 ? '#714B67' : '#B08EAA' })
+                )
+            )
+        )
+    );
+    
+    const root = ReactDOM.createRoot(container);
+    root.render(element);
+}
+
+function renderApprovalStatsChart(containerId, data) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } = window.Recharts;
+    const COLORS = ['#714B67', '#875A7B', '#22C55E', '#F59E0B', '#EF4444', '#3B82F6'];
+    
+    const element = React.createElement(
+        ResponsiveContainer,
+        { width: "100%", height: "100%" },
+        React.createElement(
+            PieChart,
+            {},
+            React.createElement(
+                Pie,
+                {
+                    data: data,
+                    cx: "50%",
+                    cy: "50%",
+                    innerRadius: 60,
+                    outerRadius: 85,
+                    paddingAngle: 3,
+                    dataKey: "value",
+                    nameKey: "status"
+                },
+                data.map((entry, index) => 
+                    React.createElement(Cell, { key: `cell-${index}`, fill: COLORS[index % COLORS.length] })
+                )
+            ),
+            React.createElement(Tooltip, {
+                contentStyle: {
+                    backgroundColor: '#FFFFFF',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '8px',
+                    fontSize: '11px'
+                }
+            }),
+            React.createElement(Legend, {
+                verticalAlign: "bottom",
+                height: 36,
+                iconSize: 10,
+                iconType: "circle",
+                wrapperStyle: { fontSize: '11px', color: '#4B5563' }
+            })
+        )
+    );
+    
+    const root = ReactDOM.createRoot(container);
+    root.render(element);
+}
 
 // ================= API FETCH CLIENT WRAPPER =================
 async function apiRequest(endpoint, options = {}) {
@@ -115,6 +310,11 @@ async function validateSession() {
         state.user = user;
         document.getElementById('profile-name').textContent = user.name;
         document.getElementById('profile-role').textContent = user.role;
+        
+        // Update switcher text based on company settings
+        const switcher = document.querySelector('.border-r.border-slate-200.pr-4 span');
+        if (switcher) switcher.textContent = settingsState.companyName;
+        
         return true;
     }
     return false;
@@ -187,6 +387,10 @@ async function handleLoginSubmit(e) {
         
         document.getElementById('profile-name').textContent = result.user_name;
         document.getElementById('profile-role').textContent = result.role;
+        
+        // Update switcher text based on company settings
+        const switcher = document.querySelector('.border-r.border-slate-200.pr-4 span');
+        if (switcher) switcher.textContent = settingsState.companyName;
         
         showToast(`Welcome back, ${result.user_name}!`, 'success');
         
@@ -263,8 +467,8 @@ function setupUIForRole() {
     const navVendorPortal = document.getElementById('nav-vendor-portal');
     const navComparison = document.getElementById('nav-comparison');
     const navApprovals = document.getElementById('nav-approvals');
-    const navAudit = document.getElementById('nav-audit');
     const navAnalytics = document.getElementById('nav-analytics');
+    const navSettings = document.getElementById('nav-settings');
     const btnAddVendor = document.getElementById('btn-add-vendor');
     const btnCreateRFQ = document.getElementById('btn-create-rfq');
     const btnAddInvoice = document.getElementById('btn-add-invoice');
@@ -276,16 +480,16 @@ function setupUIForRole() {
     navVendorPortal.classList.add('hidden');
     navComparison.classList.remove('hidden');
     navApprovals.classList.remove('hidden');
-    navAudit.classList.remove('hidden');
     navAnalytics.classList.remove('hidden');
+    navSettings.classList.remove('hidden');
     
     if (role === 'Vendor') {
-        // Vendor gets Vendor Portal and POs/Invoices, hides comparisons, audit trail, reports
+        // Vendor gets Vendor Portal, hides comparisons, approvals, reports, settings
         navVendorPortal.classList.remove('hidden');
         navComparison.classList.add('hidden');
         navApprovals.classList.add('hidden');
-        navAudit.classList.add('hidden');
         navAnalytics.classList.add('hidden');
+        navSettings.classList.add('hidden');
         
         // Hide Admin modifications
         if (btnAddVendor) btnAddVendor.classList.add('hidden');
@@ -293,9 +497,10 @@ function setupUIForRole() {
         if (btnAddInvoice) btnAddInvoice.classList.add('hidden');
         if (quickActions) quickActions.classList.add('hidden');
     } else if (role === 'Manager') {
-        // Manager approves but cannot modify vendors/RFQs directly
+        // Manager approves but cannot modify vendors/RFQs directly, hides settings
         navComparison.classList.add('hidden');
         navVendorPortal.classList.add('hidden');
+        navSettings.classList.add('hidden');
         if (btnAddVendor) btnAddVendor.classList.add('hidden');
         if (btnCreateRFQ) btnCreateRFQ.classList.add('hidden');
         if (btnAddInvoice) btnAddInvoice.classList.add('hidden');
@@ -319,11 +524,11 @@ function handleRouting() {
     // Enforce role guards
     if (state.user) {
         const role = state.user.role;
-        if (role === 'Vendor' && ['comparison', 'approvals', 'analytics', 'audit-trail'].includes(viewName)) {
+        if (role === 'Vendor' && ['comparison', 'approvals', 'analytics', 'settings'].includes(viewName)) {
             window.location.hash = '#dashboard';
             return;
         }
-        if (role === 'Manager' && ['comparison', 'vendor-portal'].includes(viewName)) {
+        if (role === 'Manager' && ['comparison', 'vendor-portal', 'settings'].includes(viewName)) {
              window.location.hash = '#dashboard';
              return;
         }
@@ -358,9 +563,9 @@ function handleRouting() {
             'purchase-orders': 'Purchase Order Ledger',
             'invoices': 'Invoice Management',
             'analytics': 'Reports & Spend Analytics',
-            'audit-trail': 'System Audits & Compliance Logs'
+            'settings': 'General & Workflow Settings'
         };
-        document.getElementById('view-title').textContent = titleMap[viewName] || 'VendorBridge';
+        document.getElementById('view-title').textContent = titleMap[viewName] || 'PurchaseHub';
         
         // Trigger view loader
         triggerViewLoader(viewName);
@@ -396,8 +601,8 @@ function triggerViewLoader(viewName) {
         case 'analytics':
             loadAnalytics();
             break;
-        case 'audit-trail':
-            loadAuditLogs();
+        case 'settings':
+            loadSettings();
             break;
     }
 }
@@ -419,67 +624,11 @@ async function loadDashboard() {
     document.getElementById('kpi-pos').textContent = kpis.purchase_orders;
     document.getElementById('kpi-invoices').textContent = kpis.invoices_generated;
     
-    // 1.1 Spend Trend Chart
-    const monthlyLabels = monthly_spend.map(x => x.month);
-    const monthlyData = monthly_spend.map(x => x.spend);
+    // 1.1 Spend Trend Chart using Recharts
+    renderSpendTrendChart('recharts-spend-trend', monthly_spend);
     
-    if (state.charts.spendTrend) state.charts.spendTrend.destroy();
-    
-    const ctxTrend = document.getElementById('chart-spend-trend').getContext('2d');
-    state.charts.spendTrend = new Chart(ctxTrend, {
-        type: 'line',
-        data: {
-            labels: monthlyLabels,
-            datasets: [{
-                label: 'Procurement Spend ($)',
-                data: monthlyData,
-                borderColor: '#4f46e5', // Indigo-600
-                backgroundColor: 'rgba(79, 70, 229, 0.05)',
-                fill: true,
-                tension: 0.3,
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 10 } } },
-                x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-            }
-        }
-    });
-    
-    // 1.2 Spend Category Chart
-    const categoryLabels = category_spend.map(x => x.category);
-    const categoryData = category_spend.map(x => x.spend);
-    
-    if (state.charts.spendCategory) state.charts.spendCategory.destroy();
-    
-    const ctxCat = document.getElementById('chart-spend-category').getContext('2d');
-    state.charts.spendCategory = new Chart(ctxCat, {
-        type: 'doughnut',
-        data: {
-            labels: categoryLabels,
-            datasets: [{
-                data: categoryData,
-                backgroundColor: ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#64748b'],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'right',
-                    labels: { boxWidth: 12, font: { size: 10 } }
-                }
-            }
-        }
-    });
+    // 1.2 Spend Category Chart using Recharts
+    renderSpendCategoryChart('recharts-spend-category', category_spend);
 }
 
 // 2. Load Vendor Profiles
@@ -835,6 +984,26 @@ async function selectWinner(rfqId, quoteId) {
     
     if (result) {
         showToast(result.message, 'success');
+        
+        // Auto-approval checks
+        const quotes = await apiRequest(`/quotations/?rfq_id=${rfqId}`);
+        const winningQuote = quotes ? quotes.find(q => q.id === quoteId) : null;
+        const price = winningQuote ? winningQuote.price : 0;
+        
+        // Auto-approve rule if approval is disabled OR price is under threshold limit
+        const autoApprove = !settingsState.requireApproval || (price <= settingsState.approvalLimit);
+        
+        if (autoApprove && state.user && state.user.role === 'Admin') {
+            showToast('Winning bid falls within auto-approval threshold. Auto-approving PO...', 'info');
+            const approveRes = await apiRequest(`/approvals/${rfqId}`, {
+                method: 'POST',
+                body: { status: 'Approved', remarks: 'System auto-approved based on threshold configuration.' }
+            });
+            if (approveRes) {
+                showToast(`Purchase Order generated automatically!`, 'success');
+            }
+        }
+        
         loadComparisonRFQs();
     }
 }
@@ -1112,57 +1281,35 @@ async function loadAnalytics() {
     const { monthly_spend, category_spend, vendor_performance } = reports;
     
     // 9.1 Monthly Trend Full Chart
-    const monthlyLabels = monthly_spend.map(x => x.month);
-    const monthlyData = monthly_spend.map(x => x.spend);
-    
-    if (state.charts.spendTrendFull) state.charts.spendTrendFull.destroy();
-    
-    const ctxTrend = document.getElementById('chart-spend-monthly-full').getContext('2d');
-    state.charts.spendTrendFull = new Chart(ctxTrend, {
-        type: 'bar',
-        data: {
-            labels: monthlyLabels,
-            datasets: [{
-                label: 'Monthly Spending ($)',
-                data: monthlyData,
-                backgroundColor: '#4f46e5',
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-                y: { grid: { color: '#f1f5f9' } },
-                x: { grid: { display: false } }
-            }
-        }
-    });
+    renderSpendTrendChart('recharts-spend-monthly-full', monthly_spend);
     
     // 9.2 Category Spend Full Chart
-    const categoryLabels = category_spend.map(x => x.category);
-    const categoryData = category_spend.map(x => x.spend);
+    renderSpendCategoryChart('recharts-spend-category-full', category_spend);
     
-    if (state.charts.spendCategoryFull) state.charts.spendCategoryFull.destroy();
+    // 9.3 Vendor Performance Rating Chart
+    renderVendorPerformanceChart('recharts-vendor-performance', vendor_performance);
     
-    const ctxCat = document.getElementById('chart-spend-category-full').getContext('2d');
-    state.charts.spendCategoryFull = new Chart(ctxCat, {
-        type: 'pie',
-        data: {
-            labels: categoryLabels,
-            datasets: [{
-                data: categoryData,
-                backgroundColor: ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#64748b']
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false
-        }
-    });
+    // 9.4 Approval Statistics Chart
+    const rfqs = await apiRequest('/rfqs/');
+    const statusCounts = {};
+    if (rfqs) {
+        rfqs.forEach(r => {
+            statusCounts[r.status] = (statusCounts[r.status] || 0) + 1;
+        });
+    }
+    const approvalData = Object.keys(statusCounts).map(status => ({
+        status: status,
+        value: statusCounts[status]
+    }));
+    const cleanApprovalData = approvalData.length > 0 ? approvalData : [
+        { status: 'Draft', value: 1 },
+        { status: 'Open', value: 2 },
+        { status: 'Approval Pending', value: 0 },
+        { status: 'Approved', value: 1 }
+    ];
+    renderApprovalStatsChart('recharts-approval-stats', cleanApprovalData);
     
-    // 9.3 Vendor Performance Table
+    // 9.5 Vendor Performance Table
     const tbody = document.querySelector('#vendor-performance-table tbody');
     tbody.innerHTML = '';
     
@@ -1178,9 +1325,9 @@ async function loadAnalytics() {
             <td class="py-3 px-6 font-medium text-slate-800">${v.quote_count} Quotations</td>
             <td class="py-3 px-6">
                 <div class="flex items-center">
-                    <span class="w-8 text-xs font-semibold text-indigo-700">${score.toFixed(0)}%</span>
+                    <span class="w-8 text-xs font-semibold text-[#714B67]">${score.toFixed(0)}%</span>
                     <div class="w-24 bg-slate-100 h-2 rounded overflow-hidden ml-2 border border-slate-200">
-                        <div class="bg-indigo-500 h-full rounded" style="width: ${score}%"></div>
+                        <div class="bg-[#714B67] h-full rounded" style="width: ${score}%"></div>
                     </div>
                 </div>
             </td>
@@ -1617,12 +1764,44 @@ async function renderNotifications() {
           return;
      }
      
-     logs.slice(0, 5).forEach(log => {
+     logs.slice(0, 6).forEach(log => {
           const item = document.createElement('div');
-          item.className = 'p-3 hover:bg-slate-50 transition-colors text-xs flex flex-col space-y-1';
+          item.className = 'p-3 hover:bg-slate-50 transition-colors text-xs flex items-start space-x-3';
+          
+          let icon = '<i class="fa-solid fa-bell text-slate-400"></i>';
+          let bg = 'bg-slate-100';
+          
+          const actionText = log.action.toLowerCase();
+          if (actionText.includes('created rfq')) {
+              icon = '<i class="fa-solid fa-file-signature text-[#714B67]"></i>';
+              bg = 'bg-purple-50';
+          } else if (actionText.includes('submitted') || actionText.includes('quotation')) {
+              icon = '<i class="fa-solid fa-scale-balanced text-[#714B67]"></i>';
+              bg = 'bg-purple-50';
+          } else if (actionText.includes('approved')) {
+              icon = '<i class="fa-solid fa-clipboard-check text-emerald-600"></i>';
+              bg = 'bg-emerald-50';
+          } else if (actionText.includes('po') || actionText.includes('purchase order')) {
+              icon = '<i class="fa-solid fa-cart-shopping text-sky-600"></i>';
+              bg = 'bg-sky-50';
+          } else if (actionText.includes('invoice')) {
+              icon = '<i class="fa-solid fa-file-invoice-dollar text-emerald-605"></i>';
+              bg = 'bg-emerald-50';
+          } else if (actionText.includes('rejected')) {
+              icon = '<i class="fa-solid fa-triangle-exclamation text-red-500"></i>';
+              bg = 'bg-red-50';
+          }
+          
+          const timeStr = formatRelativeTime(new Date(log.timestamp));
+          
           item.innerHTML = `
-               <span class="text-slate-600 leading-normal font-semibold">${log.action}</span>
-               <span class="text-[9px] text-slate-400">${new Date(log.timestamp).toLocaleTimeString()}</span>
+               <div class="w-7 h-7 rounded-full flex items-center justify-center shrink-0 ${bg}">
+                   ${icon}
+               </div>
+               <div class="flex-1 min-w-0">
+                    <p class="text-slate-700 leading-normal font-medium">${log.action}</p>
+                    <span class="text-[9px] text-slate-400 mt-0.5 block"><i class="fa-regular fa-clock mr-1"></i>${timeStr}</span>
+               </div>
           `;
           list.appendChild(item);
      });
@@ -1667,4 +1846,96 @@ function showToast(message, type = 'success') {
             toast.remove();
         }, 300);
     }, 4500);
+}
+
+// ================= SETTINGS CONTROLLER AND AUDIT LOGS =================
+async function loadSettings() {
+    // Populate settings preferences
+    document.getElementById('settings-company-name').value = settingsState.companyName;
+    document.getElementById('settings-company-gst').value = settingsState.companyGst;
+    document.getElementById('settings-auto-publish').checked = settingsState.autoPublish;
+    document.getElementById('settings-require-approval').checked = settingsState.requireApproval;
+    document.getElementById('settings-auto-po').checked = settingsState.autoPO;
+    document.getElementById('settings-approval-limit').value = settingsState.approvalLimit;
+
+    // Update switcher text
+    const switcher = document.querySelector('.border-r.border-slate-200.pr-4 span');
+    if (switcher) switcher.textContent = settingsState.companyName;
+
+    // Load Audit compliance logs
+    const logs = await apiRequest('/reports/activity-logs');
+    const tbody = document.querySelector('#settings-logs-table tbody');
+    tbody.innerHTML = '';
+    
+    if (!logs || logs.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="3" class="py-4 text-center text-slate-400">No activity logs recorded.</td></tr>`;
+        return;
+    }
+    
+    logs.forEach(log => {
+        const time = new Date(log.timestamp).toLocaleString();
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50/50 transition-colors';
+        tr.innerHTML = `
+            <td class="py-3 px-6 text-slate-505">${time}</td>
+            <td class="py-3 px-6 font-semibold text-slate-700">${log.user ? log.user.name : 'System Automated'}</td>
+            <td class="py-3 px-6 text-slate-600">${log.action}</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+function saveSettings() {
+    const companyName = document.getElementById('settings-company-name').value.trim();
+    const companyGst = document.getElementById('settings-company-gst').value.trim();
+    const autoPublish = document.getElementById('settings-auto-publish').checked;
+    const requireApproval = document.getElementById('settings-require-approval').checked;
+    const autoPO = document.getElementById('settings-auto-po').checked;
+    const approvalLimit = parseFloat(document.getElementById('settings-approval-limit').value);
+    
+    if (!companyName || !companyGst || isNaN(approvalLimit)) {
+        showToast('Please verify and enter valid configurations.', 'warning');
+        return;
+    }
+    
+    // Save state
+    settingsState.companyName = companyName;
+    settingsState.companyGst = companyGst;
+    settingsState.autoPublish = autoPublish;
+    settingsState.requireApproval = requireApproval;
+    settingsState.autoPO = autoPO;
+    settingsState.approvalLimit = approvalLimit;
+    
+    // Save storage
+    localStorage.setItem('settings_company_name', companyName);
+    localStorage.setItem('settings_company_gst', companyGst);
+    localStorage.setItem('settings_auto_publish', autoPublish);
+    localStorage.setItem('settings_require_approval', requireApproval);
+    localStorage.setItem('settings_auto_po', autoPO);
+    localStorage.setItem('settings_approval_limit', approvalLimit);
+    
+    // Apply changes
+    const switcher = document.querySelector('.border-r.border-slate-200.pr-4 span');
+    if (switcher) switcher.textContent = companyName;
+    
+    showToast('Enterprise configurations updated successfully!', 'success');
+}
+
+function discardSettings() {
+    loadSettings();
+    showToast('Configurations reset to previous state.', 'info');
+}
+
+function formatRelativeTime(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffSec = Math.floor(diffMs / 1000);
+    const diffMin = Math.floor(diffSec / 60);
+    const diffHour = Math.floor(diffMin / 60);
+    const diffDay = Math.floor(diffHour / 24);
+    
+    if (diffSec < 60) return 'Just now';
+    if (diffMin < 60) return `${diffMin}m ago`;
+    if (diffHour < 24) return `${diffHour}h ago`;
+    return `${diffDay}d ago`;
 }
