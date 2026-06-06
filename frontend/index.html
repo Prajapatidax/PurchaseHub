@@ -1,0 +1,943 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VendorBridge | Procurement & Vendor Management ERP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen flex flex-col font-['Inter']">
+
+    <!-- ================= AUTH CONTAINER ================= -->
+    <div id="auth-container" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-100 transition-all duration-300 transform scale-100 flex flex-col">
+            <!-- Auth Header Banner -->
+            <div class="bg-gradient-to-tr from-brand-700 to-indigo-500 p-8 text-white relative">
+                <div class="absolute top-4 right-4 text-white/25 text-5xl font-bold font-['Outfit'] select-none">ERP</div>
+                <h1 class="text-2xl font-bold font-['Outfit'] tracking-tight">VendorBridge</h1>
+                <p class="text-sm text-indigo-100 mt-1">Procurement & Vendor ERP Portal</p>
+            </div>
+            
+            <!-- Login Form -->
+            <div id="login-form-view" class="p-8 flex-1">
+                <h2 class="text-xl font-bold text-slate-800 mb-6">Account Login</h2>
+                <form id="login-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Email Address</label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-envelope"></i>
+                            </span>
+                            <input type="email" id="login-email" required class="pl-10 w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g. officer@vendorbridge.com">
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Password</label>
+                            <a href="#" id="forgot-password-link" class="text-xs text-brand-600 hover:text-brand-700 hover:underline">Forgot Password?</a>
+                        </div>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                <i class="fa-solid fa-lock"></i>
+                            </span>
+                            <input type="password" id="login-password" required class="pl-10 w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="••••••••">
+                        </div>
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="login-remember" class="h-4 w-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                        <label for="login-remember" class="ml-2 block text-sm text-slate-600">Remember my session</label>
+                    </div>
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-lg shadow-brand-500/20">
+                        Sign In <i class="fa-solid fa-arrow-right ml-1"></i>
+                    </button>
+                </form>
+                
+                <!-- Demo login quick-select buttons -->
+                <div class="mt-6 pt-6 border-t border-slate-100">
+                    <span class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 text-center">Demo Quick Login</span>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="autofillLogin('officer@vendorbridge.com', 'officerpassword')" class="text-left bg-slate-50 hover:bg-brand-50 hover:text-brand-700 p-2 rounded-lg text-xs border border-slate-100 transition-colors">
+                            <span class="font-bold block">Procurement Officer</span>
+                            <span class="text-[10px] text-slate-400">officer@vendorbridge.com</span>
+                        </button>
+                        <button onclick="autofillLogin('manager@vendorbridge.com', 'managerpassword')" class="text-left bg-slate-50 hover:bg-brand-50 hover:text-brand-700 p-2 rounded-lg text-xs border border-slate-100 transition-colors">
+                            <span class="font-bold block">Manager (Approver)</span>
+                            <span class="text-[10px] text-slate-400">manager@vendorbridge.com</span>
+                        </button>
+                        <button onclick="autofillLogin('bids@dell.com', 'dellpassword')" class="text-left bg-slate-50 hover:bg-brand-50 hover:text-brand-700 p-2 rounded-lg text-xs border border-slate-100 transition-colors">
+                            <span class="font-bold block">Vendor (Dell)</span>
+                            <span class="text-[10px] text-slate-400">bids@dell.com</span>
+                        </button>
+                        <button onclick="autofillLogin('partners@hp.com', 'hppassword')" class="text-left bg-slate-50 hover:bg-brand-50 hover:text-brand-700 p-2 rounded-lg text-xs border border-slate-100 transition-colors">
+                            <span class="font-bold block">Vendor (HP)</span>
+                            <span class="text-[10px] text-slate-400">partners@hp.com</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center">
+                    <span class="text-sm text-slate-500">Need a partner account? </span>
+                    <a href="#" id="go-to-signup" class="text-sm text-brand-600 hover:text-brand-700 font-semibold hover:underline">Sign Up Now</a>
+                </div>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form-view" class="p-8 flex-1 hidden">
+                <h2 class="text-xl font-bold text-slate-800 mb-6">Create Partner Account</h2>
+                <form id="signup-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Full Name</label>
+                        <input type="text" id="signup-name" required class="w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g. John Doe">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" id="signup-email" required class="w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g. john@company.com">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Register As</label>
+                        <select id="signup-role" required onchange="toggleCompanyField()" class="w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500">
+                            <option value="Vendor" selected>Vendor Partner</option>
+                            <option value="Procurement Officer">Procurement Officer</option>
+                            <option value="Manager">Finance Manager</option>
+                            <option value="Admin">Administrator</option>
+                        </select>
+                    </div>
+                    <div id="signup-company-container">
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Company Name</label>
+                        <input type="text" id="signup-company" class="w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g. Lenovo Business Inc">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Password</label>
+                        <input type="password" id="signup-password" required class="w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="••••••••">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-lg shadow-brand-500/20">
+                        Create Account <i class="fa-solid fa-user-plus ml-1"></i>
+                    </button>
+                </form>
+                <div class="mt-4 text-center">
+                    <span class="text-sm text-slate-500">Already registered? </span>
+                    <a href="#" id="go-to-login" class="text-sm text-brand-600 hover:text-brand-700 font-semibold hover:underline">Back to Login</a>
+                </div>
+            </div>
+
+            <!-- Forgot Password Form -->
+            <div id="forgot-form-view" class="p-8 flex-1 hidden">
+                <h2 class="text-xl font-bold text-slate-800 mb-4 font-['Outfit']">Password Recovery</h2>
+                <p class="text-xs text-slate-500 mb-6">Enter your registered email and we will send a password reset verification token.</p>
+                <form id="forgot-form" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" id="forgot-email" required class="w-full rounded-lg border border-slate-200 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500" placeholder="e.g. user@vendorbridge.com">
+                    </div>
+                    <button type="submit" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-lg shadow-brand-500/20">
+                        Send Recovery Link <i class="fa-solid fa-share-from-square ml-1"></i>
+                    </button>
+                </form>
+                <div class="mt-6 text-center">
+                    <a href="#" id="forgot-back-to-login" class="text-sm text-brand-600 hover:text-brand-700 font-semibold hover:underline">Back to Login</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================= CORE ERP LAYOUT ================= -->
+    <div id="app-layout" class="flex flex-1 overflow-hidden h-screen hidden">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col z-20 transition-all duration-300 shrink-0 shadow-xl border-r border-slate-800">
+            <!-- Sidebar Header -->
+            <div class="h-16 flex items-center px-6 border-b border-slate-800 shrink-0 bg-slate-950">
+                <div class="flex items-center space-x-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold font-['Outfit'] text-lg shadow-lg shadow-brand-500/30">VB</div>
+                    <span class="font-semibold text-white text-lg font-['Outfit'] tracking-wide">VendorBridge</span>
+                </div>
+            </div>
+            
+            <!-- User Profile Block -->
+            <div class="p-4 border-b border-slate-800 bg-slate-900/50 flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center text-slate-200 border border-slate-600 shadow-md">
+                    <i class="fa-solid fa-user-tie text-lg" id="profile-role-icon"></i>
+                </div>
+                <div class="overflow-hidden">
+                    <div class="text-sm font-semibold text-white truncate" id="profile-name">Sarah Jenkins</div>
+                    <div class="text-[10px] text-brand-500 uppercase tracking-widest font-bold" id="profile-role">Procurement Officer</div>
+                </div>
+            </div>
+            
+            <!-- Navigation Links -->
+            <nav class="flex-1 py-4 px-3 space-y-1 overflow-y-auto" id="sidebar-nav">
+                <a href="#dashboard" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link active hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-chart-pie w-5 text-center text-base"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="#vendors" id="nav-vendors" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-building-user w-5 text-center text-base"></i>
+                    <span>Vendor Profiles</span>
+                </a>
+                
+                <a href="#rfqs" id="nav-rfqs" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-file-signature w-5 text-center text-base"></i>
+                    <span>RFQ Management</span>
+                </a>
+                
+                <a href="#vendor-portal" id="nav-vendor-portal" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white hidden">
+                    <i class="fa-solid fa-door-open w-5 text-center text-base"></i>
+                    <span>Vendor Portal</span>
+                </a>
+
+                <a href="#comparison" id="nav-comparison" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-scale-balanced w-5 text-center text-base"></i>
+                    <span>Quotation Compare</span>
+                </a>
+
+                <a href="#approvals" id="nav-approvals" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-clipboard-check w-5 text-center text-base"></i>
+                    <span>Pending Approvals</span>
+                </a>
+
+                <a href="#purchase-orders" id="nav-pos" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-file-invoice-dollar w-5 text-center text-base"></i>
+                    <span>Purchase Orders</span>
+                </a>
+
+                <a href="#invoices" id="nav-invoices" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-file-invoice w-5 text-center text-base"></i>
+                    <span>Invoice Module</span>
+                </a>
+
+                <a href="#analytics" id="nav-analytics" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-chart-line w-5 text-center text-base"></i>
+                    <span>Reports & Charts</span>
+                </a>
+
+                <a href="#audit-trail" id="nav-audit" class="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-250 nav-link hover:bg-slate-800 hover:text-white">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center text-base"></i>
+                    <span>Activity Audit Logs</span>
+                </a>
+            </nav>
+            
+            <!-- Sidebar Footer -->
+            <div class="p-4 border-t border-slate-800 bg-slate-950 shrink-0 flex justify-between items-center text-xs">
+                <span>v1.0.0 (Production)</span>
+                <button onclick="handleLogout()" class="text-slate-400 hover:text-rose-400 font-semibold flex items-center transition-colors">
+                    <i class="fa-solid fa-power-off mr-1"></i> Sign Out
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN WINDOW WRAPPER -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            
+            <!-- TOP NAVBAR -->
+            <header class="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 shadow-sm z-10">
+                <div class="flex items-center space-x-4">
+                    <h2 class="text-lg font-semibold text-slate-800 font-['Outfit']" id="view-title">Dashboard Overview</h2>
+                </div>
+                
+                <!-- Navbar Actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Emails Log Modal trigger -->
+                    <button onclick="openEmailsModal()" class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 relative transition-colors" title="System Audit Emails">
+                        <i class="fa-solid fa-envelope-open-text text-lg"></i>
+                        <span id="emails-count-badge" class="absolute top-1 right-1 bg-red-500 text-white rounded-full text-[9px] w-4 h-4 flex items-center justify-center font-bold hidden">0</span>
+                    </button>
+                    <!-- Notifications -->
+                    <div class="relative">
+                        <button class="w-10 h-10 rounded-full hover:bg-slate-100 flex items-center justify-center text-slate-600 relative transition-colors" onclick="toggleNotifications()">
+                            <i class="fa-solid fa-bell text-lg"></i>
+                            <span class="absolute top-1.5 right-1.5 bg-brand-500 rounded-full w-2.5 h-2.5 ring-2 ring-white"></span>
+                        </button>
+                        <!-- Notifications Panel -->
+                        <div id="notifications-panel" class="absolute right-0 mt-2 w-80 bg-white border border-slate-150 rounded-xl shadow-xl z-30 hidden py-2 max-h-96 overflow-y-auto">
+                            <h3 class="px-4 py-2 border-b border-slate-100 text-xs font-bold text-slate-500 uppercase tracking-wider">System Notifications</h3>
+                            <div id="notifications-list" class="divide-y divide-slate-100">
+                                <!-- Generated list items -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+            
+            <!-- DYNAMIC SCREEN CONTAINER -->
+            <main class="flex-1 overflow-y-auto p-8 relative" id="screen-container">
+                
+                <!-- ================= VIEW 1: DASHBOARD ================= -->
+                <div id="view-dashboard" class="space-y-8 view-pane">
+                    
+                    <!-- KPI CARDS GRID -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+                        <!-- Card 1 -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Spend</span>
+                                <span class="bg-emerald-50 text-emerald-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-trend-up"></i> +12%</span>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-2xl font-bold text-slate-800" id="kpi-spend">$0.00</h3>
+                                <span class="text-[10px] text-slate-400 mt-1 block">Accumulated POs</span>
+                            </div>
+                        </div>
+                        <!-- Card 2 -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Registered Vendors</span>
+                                <i class="fa-solid fa-users text-indigo-400 text-sm"></i>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-2xl font-bold text-slate-800" id="kpi-vendors">0</h3>
+                                <span class="text-[10px] text-slate-400 mt-1 block">Active Partners</span>
+                            </div>
+                        </div>
+                        <!-- Card 3 -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Active RFQs</span>
+                                <i class="fa-solid fa-folder-open text-orange-400 text-sm"></i>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-2xl font-bold text-slate-800" id="kpi-rfqs">0</h3>
+                                <span class="text-[10px] text-slate-400 mt-1 block">Open / Received Bids</span>
+                            </div>
+                        </div>
+                        <!-- Card 4 -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending Approvals</span>
+                                <span class="bg-amber-50 text-amber-700 text-[10px] font-bold px-1.5 py-0.5 rounded-full">Alert</span>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-2xl font-bold text-slate-800 text-amber-600" id="kpi-approvals">0</h3>
+                                <span class="text-[10px] text-slate-400 mt-1 block">Needs Manager Sign</span>
+                            </div>
+                        </div>
+                        <!-- Card 5 -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Purchase Orders</span>
+                                <i class="fa-solid fa-cart-shopping text-sky-400 text-sm"></i>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-2xl font-bold text-slate-800" id="kpi-pos">0</h3>
+                                <span class="text-[10px] text-slate-400 mt-1 block">PO generated/accepted</span>
+                            </div>
+                        </div>
+                        <!-- Card 6 -->
+                        <div class="bg-white p-5 rounded-xl border border-slate-200/80 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                            <div class="flex justify-between items-start">
+                                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Invoices Generated</span>
+                                <i class="fa-solid fa-receipt text-emerald-400 text-sm"></i>
+                            </div>
+                            <div class="mt-4">
+                                <h3 class="text-2xl font-bold text-slate-800" id="kpi-invoices">0</h3>
+                                <span class="text-[10px] text-slate-400 mt-1 block">Awaiting finance clear</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ACTION BUTTONS -->
+                    <div class="flex flex-wrap gap-4" id="procurement-actions">
+                        <button onclick="openCreateRFQModal()" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center shadow-lg shadow-brand-500/15 transition-all">
+                            <i class="fa-solid fa-circle-plus mr-2"></i> Create New RFQ
+                        </button>
+                        <button onclick="openCreateVendorModal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center shadow-sm transition-all">
+                            <i class="fa-solid fa-user-plus mr-2 text-indigo-500"></i> Add Vendor Partner
+                        </button>
+                        <button onclick="triggerInvoiceModal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 px-4 py-2.5 rounded-lg text-sm font-semibold flex items-center shadow-sm transition-all">
+                            <i class="fa-solid fa-file-invoice mr-2 text-emerald-500"></i> Generate Invoice
+                        </button>
+                    </div>
+
+                    <!-- CHARTS SNAPSHOTS -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-[320px]">
+                            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Monthly Spend Analytics ($)</h3>
+                            <div class="flex-1 relative">
+                                <canvas id="chart-spend-trend"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-[320px]">
+                            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Spend by Category</h3>
+                            <div class="flex-1 relative flex justify-center">
+                                <canvas id="chart-spend-category"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 2: VENDOR MANAGEMENT ================= -->
+                <div id="view-vendors" class="space-y-6 view-pane hidden">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex items-center space-x-3 w-full sm:w-auto">
+                            <!-- Search -->
+                            <div class="relative flex-1 sm:w-80">
+                                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </span>
+                                <input type="text" id="vendor-search-input" onkeyup="filterVendors()" class="pl-10 w-full rounded-lg border border-slate-200 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Search by name...">
+                            </div>
+                            <!-- Category Filter -->
+                            <select id="vendor-category-select" onchange="filterVendors()" class="rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="">All Categories</option>
+                                <option value="IT Hardware">IT Hardware</option>
+                                <option value="IT Infrastructure">IT Infrastructure</option>
+                                <option value="General Procurement">General Procurement</option>
+                            </select>
+                        </div>
+                        <button onclick="openCreateVendorModal()" id="btn-add-vendor" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center shadow-lg shadow-brand-500/10">
+                            <i class="fa-solid fa-user-plus mr-2"></i> Add Vendor
+                        </button>
+                    </div>
+
+                    <!-- Vendor Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="vendors-table">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-xs font-semibold">
+                                    <tr>
+                                        <th class="py-4 px-6">Company Name</th>
+                                        <th class="py-4 px-6">GSTIN</th>
+                                        <th class="py-4 px-6">Category</th>
+                                        <th class="py-4 px-6">Email / Phone</th>
+                                        <th class="py-4 px-6">Rating</th>
+                                        <th class="py-4 px-6">Status</th>
+                                        <th class="py-4 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 3: RFQ MANAGEMENT ================= -->
+                <div id="view-rfqs" class="space-y-6 view-pane hidden">
+                    <div class="flex justify-between items-center flex-wrap gap-4">
+                        <div class="flex items-center space-x-3">
+                            <select id="rfq-status-filter" onchange="loadRFQs()" class="rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="">All Statuses</option>
+                                <option value="Draft">Draft</option>
+                                <option value="Open">Open</option>
+                                <option value="Quotation Received">Quotation Received</option>
+                                <option value="Approval Pending">Approval Pending</option>
+                                <option value="Approved">Approved</option>
+                                <option value="Rejected">Rejected</option>
+                            </select>
+                        </div>
+                        <button onclick="openCreateRFQModal()" id="btn-create-rfq" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center shadow-lg shadow-brand-500/10">
+                            <i class="fa-solid fa-circle-plus mr-2"></i> Create RFQ
+                        </button>
+                    </div>
+
+                    <!-- RFQs Grid -->
+                    <div id="rfqs-grid-container" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 4: VENDOR PORTAL ================= -->
+                <div id="view-vendor-portal" class="space-y-6 view-pane hidden">
+                    <div class="bg-gradient-to-r from-slate-800 to-indigo-900 rounded-xl p-6 text-white mb-6">
+                        <h3 class="text-xl font-bold font-['Outfit']">Vendor Portal</h3>
+                        <p class="text-xs text-indigo-200 mt-1">Review assigned bidding RFQs, submit quotes, track POs, and generate invoices.</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+                        <!-- Assigned RFQs -->
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                            <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3 flex justify-between">
+                                <span>Assigned RFQs</span>
+                                <span class="bg-indigo-50 text-indigo-700 text-[10px] px-2 py-0.5 rounded font-bold">Action Needed</span>
+                            </h4>
+                            <div class="space-y-4 max-h-[450px] overflow-y-auto" id="portal-assigned-rfqs">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Submitted Bids -->
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6">
+                            <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-4 border-b border-slate-100 pb-3">Submitted Quotations</h4>
+                            <div class="space-y-4 max-h-[450px] overflow-y-auto" id="portal-submitted-quotes">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 5: QUOTATION COMPARISON ================= -->
+                <div id="view-comparison" class="space-y-6 view-pane hidden">
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select RFQ for quotation comparison</label>
+                        <select id="compare-rfq-select" onchange="loadComparisonData()" class="w-full max-w-md rounded-lg border border-slate-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <!-- Populated dynamically with RFQs that are Open, Quotation Received, or Approval Pending -->
+                        </select>
+                    </div>
+
+                    <div id="comparison-details-section" class="hidden space-y-6">
+                        <!-- Highlights: Lowest Price & Fastest Delivery -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-5 flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-emerald-500/15">
+                                    <i class="fa-solid fa-tag"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-emerald-600 font-bold uppercase tracking-wider block">Best Offer (Lowest Price)</span>
+                                    <h4 class="text-lg font-bold text-slate-800 mt-0.5" id="highlight-lowest-vendor">HP Enterprise</h4>
+                                    <span class="text-xs text-slate-500" id="highlight-lowest-value">$47,000.00</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-sky-50 border border-sky-100 rounded-xl p-5 flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-sky-500 text-white rounded-full flex items-center justify-center text-xl shadow-lg shadow-sky-500/15">
+                                    <i class="fa-solid fa-truck-fast"></i>
+                                </div>
+                                <div>
+                                    <span class="text-xs text-sky-600 font-bold uppercase tracking-wider block">Fastest Lead Time</span>
+                                    <h4 class="text-lg font-bold text-slate-800 mt-0.5" id="highlight-fastest-vendor">HP Enterprise</h4>
+                                    <span class="text-xs text-slate-500" id="highlight-fastest-value">7 Days</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- side by side quotations comparisons -->
+                        <div class="bg-white rounded-xl border border-slate-200 shadow-sm p-6 overflow-hidden">
+                            <h4 class="text-sm font-bold text-slate-700 uppercase tracking-wider mb-6">Compare Quotations Side-by-Side</h4>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="comparison-cards-grid">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 6: PENDING APPROVALS ================= -->
+                <div id="view-approvals" class="space-y-6 view-pane hidden">
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="approvals-table">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-xs font-semibold">
+                                    <tr>
+                                        <th class="py-4 px-6">RFQ ID</th>
+                                        <th class="py-4 px-6">RFQ Title</th>
+                                        <th class="py-4 px-6">Selected Vendor</th>
+                                        <th class="py-4 px-6">Bid Amount</th>
+                                        <th class="py-4 px-6">Delivery Days</th>
+                                        <th class="py-4 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 7: PURCHASE ORDERS ================= -->
+                <div id="view-purchase-orders" class="space-y-6 view-pane hidden">
+                    <!-- PO Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="pos-table">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-xs font-semibold">
+                                    <tr>
+                                        <th class="py-4 px-6">PO Number</th>
+                                        <th class="py-4 px-6">Vendor Name</th>
+                                        <th class="py-4 px-6">RFQ Ref</th>
+                                        <th class="py-4 px-6">Amount ($)</th>
+                                        <th class="py-4 px-6">Created Date</th>
+                                        <th class="py-4 px-6">Status</th>
+                                        <th class="py-4 px-6 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 8: INVOICE MODULE ================= -->
+                <div id="view-invoices" class="space-y-6 view-pane hidden">
+                    <div class="flex justify-end mb-6">
+                        <button onclick="triggerInvoiceModal()" id="btn-add-invoice" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center shadow-lg shadow-brand-500/10">
+                            <i class="fa-solid fa-file-invoice mr-2"></i> Generate Invoice
+                        </button>
+                    </div>
+                    
+                    <!-- Invoice Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="invoices-table">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-xs font-semibold">
+                                    <tr>
+                                        <th class="py-4 px-6">Invoice Number</th>
+                                        <th class="py-4 px-6">PO Number</th>
+                                        <th class="py-4 px-6">Vendor Company</th>
+                                        <th class="py-4 px-6">Subtotal ($)</th>
+                                        <th class="py-4 px-6">Tax ($)</th>
+                                        <th class="py-4 px-6">Grand Total ($)</th>
+                                        <th class="py-4 px-6">Date Issued</th>
+                                        <th class="py-4 px-6 text-right">PDF</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 9: REPORTS ================= -->
+                <div id="view-analytics" class="space-y-8 view-pane hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-[380px]">
+                            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Monthly Spend Overview</h3>
+                            <div class="flex-1 relative">
+                                <canvas id="chart-spend-monthly-full"></canvas>
+                            </div>
+                        </div>
+                        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col h-[380px]">
+                            <h3 class="text-sm font-bold text-slate-700 mb-4 uppercase tracking-wider">Spend by Category</h3>
+                            <div class="flex-1 relative flex justify-center">
+                                <canvas id="chart-spend-category-full"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+                        <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+                            <h3 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Vendor Performance Reports</h3>
+                            <button onclick="exportToCSV()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                                <i class="fa-solid fa-file-csv mr-1 text-slate-500"></i> Export to CSV
+                            </button>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="vendor-performance-table">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-xs font-semibold">
+                                    <tr>
+                                        <th class="py-3 px-6">Vendor Name</th>
+                                        <th class="py-3 px-6">Quality Rating</th>
+                                        <th class="py-3 px-6">Total Bids Submitted</th>
+                                        <th class="py-3 px-6">Reliability Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= VIEW 10: AUDIT LOGS ================= -->
+                <div id="view-audit-trail" class="space-y-6 view-pane hidden">
+                    <!-- Audit Logs Table -->
+                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="p-4 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Activity Logs & Audit Trail</h3>
+                            <span class="bg-indigo-100 text-indigo-800 text-[10px] font-bold px-2 py-0.5 rounded-full">Compliance Active</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse" id="logs-table">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider text-xs font-semibold">
+                                    <tr>
+                                        <th class="py-3.5 px-6 w-48">Timestamp</th>
+                                        <th class="py-3.5 px-6 w-48">Operator</th>
+                                        <th class="py-3.5 px-6">Event Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-sm text-slate-600 font-mono">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+            </main>
+        </div>
+    </div>
+
+
+    <!-- ================================= MODALS ================================= -->
+    
+    <!-- 1. ADD/EDIT VENDOR MODAL -->
+    <div id="vendor-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg border border-slate-200 overflow-hidden transform scale-100 transition-all flex flex-col">
+            <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold font-['Outfit']" id="vendor-modal-title">Add Vendor Profile</h3>
+                <button onclick="closeVendorModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="vendor-form" class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Company Name</label>
+                        <input type="text" id="v-name" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">GSTIN Number</label>
+                        <input type="text" id="v-gst" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="e.g. GST-XX1234">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Category</label>
+                        <select id="v-category" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="IT Hardware">IT Hardware</option>
+                            <option value="IT Infrastructure">IT Infrastructure</option>
+                            <option value="General Procurement">General Procurement</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Email Address</label>
+                        <input type="email" id="v-email" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Phone Number</label>
+                        <input type="text" id="v-phone" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="+1 (555) 000-0000">
+                    </div>
+                    <div id="v-rating-container" class="hidden">
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Quality Rating (0-5)</label>
+                        <input type="number" step="0.1" min="0" max="5" id="v-rating" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Corporate Address</label>
+                    <textarea id="v-address" required rows="2" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeVendorModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-brand-500/10">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. CREATE/EDIT RFQ MODAL -->
+    <div id="rfq-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-xl border border-slate-200 overflow-hidden transform scale-100 transition-all flex flex-col">
+            <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold font-['Outfit']" id="rfq-modal-title">Create Procurement RFQ</h3>
+                <button onclick="closeRFQModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="rfq-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">RFQ Title / Product Name</label>
+                    <input type="text" id="rfq-title" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="e.g. 100 Wireless Keyboards">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Quantity Needed</label>
+                        <input type="number" min="1" id="rfq-quantity" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Bidding Deadline</label>
+                        <input type="datetime-local" id="rfq-deadline" required class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Detailed Technical Specifications</label>
+                    <textarea id="rfq-desc" required rows="3" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Provide specs, requirements, warranty requirements, etc."></textarea>
+                </div>
+                
+                <!-- Attachment File Input -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Attach Spec File (Mock)</label>
+                        <div class="relative">
+                            <input type="text" id="rfq-attachment" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-xs focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="e.g. specs_sheet_v3.pdf">
+                        </div>
+                    </div>
+                    <div>
+                         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Status (Override)</label>
+                         <select id="rfq-status-select" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                              <option value="Draft">Draft</option>
+                              <option value="Open">Open (Publish to vendors)</option>
+                         </select>
+                    </div>
+                </div>
+
+                <!-- Vendor Selection Checklist -->
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Assign Bidding Vendors</label>
+                    <div class="border border-slate-200 rounded-lg p-3 max-h-32 overflow-y-auto space-y-2" id="rfq-vendors-checklist">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeRFQModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-brand-500/10">Save RFQ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. SUBMIT QUOTATION MODAL -->
+    <div id="quote-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md border border-slate-200 overflow-hidden transform scale-100 transition-all flex flex-col">
+            <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold font-['Outfit']">Submit Quotation Bid</h3>
+                <button onclick="closeQuoteModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="quote-form" class="p-6 space-y-4">
+                <input type="hidden" id="q-rfq-id">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Bid Price ($)</label>
+                    <input type="number" min="1" id="q-price" required class="w-full rounded-lg border border-slate-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="e.g. 45000">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Delivery Lead Time (Days)</label>
+                    <input type="number" min="1" id="q-days" required class="w-full rounded-lg border border-slate-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="e.g. 7">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Proposal Notes / Remarks</label>
+                    <textarea id="q-notes" rows="3" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Warranty, support details, specs matching notes..."></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeQuoteModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-brand-500/10">Submit Bid</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. SUBMIT APPROVAL REMARKS MODAL -->
+    <div id="approval-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md border border-slate-200 overflow-hidden transform scale-100 transition-all flex flex-col">
+            <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold font-['Outfit']">Approval Work Order Decision</h3>
+                <button onclick="closeApprovalModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="approval-form" class="p-6 space-y-4">
+                <input type="hidden" id="app-rfq-id">
+                <input type="hidden" id="app-decision-status">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Review Remarks / Auditing Notes</label>
+                    <textarea id="app-remarks" required rows="3" class="w-full rounded-lg border border-slate-200 py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500" placeholder="Why is this order approved or rejected?"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeApprovalModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+                    <button type="submit" id="btn-approval-submit" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-emerald-500/10">Submit Decision</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 5. GENERATE INVOICE MODAL -->
+    <div id="invoice-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md border border-slate-200 overflow-hidden transform scale-100 transition-all flex flex-col">
+            <div class="bg-slate-900 p-5 text-white flex justify-between items-center">
+                <h3 class="text-lg font-bold font-['Outfit']">Generate ERP Invoice</h3>
+                <button onclick="closeInvoiceModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="invoice-form" class="p-6 space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Select Purchase Order (Accepted)</label>
+                    <select id="inv-po-select" required class="w-full rounded-lg border border-slate-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <!-- Populated with accepted POs -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Tax rate (%)</label>
+                    <input type="number" step="0.5" id="inv-tax-rate" value="18.0" required class="w-full rounded-lg border border-slate-200 py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                </div>
+                <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeInvoiceModal()" class="px-4 py-2 border border-slate-200 text-slate-600 rounded-lg text-sm hover:bg-slate-50 transition-colors">Cancel</button>
+                    <button type="submit" class="bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors shadow-md shadow-brand-500/10">Generate Invoice</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 6. AUDIT SYSTEM SENT EMAILS LOG MODAL -->
+    <div id="emails-modal" class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/55 backdrop-blur-xs p-4 hidden">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-3xl border border-slate-200 overflow-hidden transform scale-100 transition-all flex flex-col h-[550px]">
+            <div class="bg-slate-900 p-5 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <h3 class="text-lg font-bold font-['Outfit']"><i class="fa-solid fa-server mr-2 text-indigo-400"></i>System Outbox (Mock SMTP)</h3>
+                    <p class="text-[10px] text-slate-400 mt-0.5">Audit log of system-generated email dispatches triggered by workflow events.</p>
+                </div>
+                <button onclick="closeEmailsModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="flex flex-1 overflow-hidden">
+                <!-- Email Sidebar List -->
+                <div class="w-72 border-r border-slate-150 overflow-y-auto divide-y divide-slate-100 shrink-0" id="emails-sidebar-list">
+                    <!-- Populated dynamically -->
+                </div>
+                
+                <!-- Email Reading Body Pane -->
+                <div class="flex-1 bg-slate-50/50 p-6 overflow-y-auto flex flex-col" id="email-detail-pane">
+                    <div class="text-center my-auto text-slate-400" id="email-placeholder">
+                        <i class="fa-solid fa-inbox text-5xl mb-3 text-slate-300"></i>
+                        <p class="text-sm">Select a mail notification from the sidebar to inspect its content.</p>
+                    </div>
+                    <div id="email-real-content" class="hidden space-y-4">
+                        <div class="bg-white border border-slate-150 p-4 rounded-lg shadow-sm">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <span class="text-xs text-slate-400 font-bold uppercase block">Recipient</span>
+                                    <span class="text-sm font-semibold text-slate-800" id="mail-to">recipient@dell.com</span>
+                                </div>
+                                <span class="text-xs text-slate-400" id="mail-time">2026-06-06 10:45 AM</span>
+                            </div>
+                            <div class="mt-3">
+                                <span class="text-xs text-slate-400 font-bold uppercase block">Subject</span>
+                                <h4 class="text-sm font-bold text-slate-800" id="mail-subject">Welcome to VendorBridge ERP</h4>
+                            </div>
+                        </div>
+                        <div class="bg-white border border-slate-150 p-6 rounded-lg shadow-sm flex-1 font-mono text-xs text-slate-700 whitespace-pre-wrap leading-relaxed" id="mail-body">
+                            <!-- Body text -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ================================= UTILS (NOTIFICATION BANNER) ================================= -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-50 space-y-2">
+        <!-- Dynamically generated notification toast alerts -->
+    </div>
+
+    <!-- Frontend logic -->
+    <script src="app.js"></script>
+</body>
+</html>

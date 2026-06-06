@@ -1,0 +1,30 @@
+# Python cache and compiled files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+dist/
+build/
+
+# Local databases
+*.db
+*.sqlite3
+
+# Environment configurations
+.env
+
+# Editor & IDE configurations
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+.DS_Store

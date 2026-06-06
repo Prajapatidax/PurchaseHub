@@ -1,0 +1,119 @@
+/* Premium VendorBridge ERP Styling */
+
+/* Custom Typography */
+body {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: -0.011em;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Dark Sidebar scrollbar overrides */
+aside ::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+
+aside ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Sidebar Active states */
+.nav-link {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 3px solid transparent;
+}
+
+.nav-link.active {
+    background-color: #1e293b; /* slate 800 */
+    color: #ffffff;
+    border-left-color: #6366f1; /* indigo 500 */
+}
+
+/* Modal fade animations */
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal-active {
+    animation: modalFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Toast animations */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.toast-item {
+    animation: slideInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Glassmorphism utility */
+.glassmorphism {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+/* Micro-interactions */
+.card-hover {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom badges */
+.badge-status {
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.badge-status-draft { background-color: #f1f5f9; color: #475569; }
+.badge-status-open { background-color: #eff6ff; color: #2563eb; }
+.badge-status-received { background-color: #f5f3ff; color: #7c3aed; }
+.badge-status-pending { background-color: #fffbeb; color: #d97706; }
+.badge-status-approved { background-color: #ecfdf5; color: #059669; }
+.badge-status-rejected { background-color: #fdf2f2; color: #dc2626; }
+.badge-status-po-sent { background-color: #f0fdf4; color: #15803d; }
+.badge-status-po-accepted { background-color: #ecfdf5; color: #047857; }
