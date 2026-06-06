@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Client Action for Dashboard -->
+    <record id="action_purchasehub_dashboard" model="ir.actions.client">
+        <field name="name">PurchaseHub Analytics Dashboard</field>
+        <field name="tag">purchasehub_dashboard</field>
+        <field name="target">main</field>
+    </record>
+</odoo>

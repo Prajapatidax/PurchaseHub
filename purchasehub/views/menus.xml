@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Root Menu -->
+    <menuitem id="menu_purchasehub_root" name="PurchaseHub" web_icon="purchasehub,static/description/icon.png" sequence="10"/>
+
+    <!-- Dashboard Menu -->
+    <menuitem id="menu_purchasehub_dashboard" name="Dashboard" parent="menu_purchasehub_root" action="action_purchasehub_dashboard" sequence="1"/>
+
+    <!-- Procurement Submenu -->
+    <menuitem id="menu_purchasehub_procurement" name="Procurement" parent="menu_purchasehub_root" sequence="2"/>
+    <menuitem id="menu_purchasehub_vendors" name="Vendors" parent="menu_purchasehub_procurement" action="action_purchasehub_vendor" sequence="1"/>
+    <menuitem id="menu_purchasehub_rfqs" name="RFQs" parent="menu_purchasehub_procurement" action="action_purchasehub_rfq" sequence="2"/>
+    <menuitem id="menu_purchasehub_quotations" name="Quotations" parent="menu_purchasehub_procurement" action="action_purchasehub_quotation" sequence="3"/>
+    <menuitem id="menu_purchasehub_approvals" name="Approvals" parent="menu_purchasehub_procurement" action="action_purchasehub_approval" sequence="4"/>
+
+    <!-- Financials Submenu -->
+    <menuitem id="menu_purchasehub_financials" name="Financials" parent="menu_purchasehub_root" sequence="3"/>
+    <menuitem id="menu_purchasehub_purchase_orders" name="Purchase Orders" parent="menu_purchasehub_financials" action="action_purchasehub_purchase_order" sequence="1"/>
+    <menuitem id="menu_purchasehub_invoices" name="Invoices" parent="menu_purchasehub_financials" action="action_purchasehub_invoice" sequence="2"/>
+
+    <!-- Configuration/Audit Submenu -->
+    <menuitem id="menu_purchasehub_audit" name="Audit Logs" parent="menu_purchasehub_root" action="action_purchasehub_activity_log" sequence="100" groups="purchasehub.group_admin"/>
+</odoo>

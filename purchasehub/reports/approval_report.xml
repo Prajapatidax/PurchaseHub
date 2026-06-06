@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_approval_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: 'Inter', sans-serif;">
+                        <div class="text-center mb-4" style="border-bottom: 2px solid #4a154b; padding-bottom: 10px;">
+                            <h2 style="color: #4a154b; font-weight: bold;">Procurement Approval Record</h2>
+                            <h4 class="text-muted"><t t-out="doc.approval_number"/></h4>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <strong>Quotation Under Evaluation:</strong>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Quotation Ref:</strong></td>
+                                        <td><t t-out="doc.quotation_id.quotation_number"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Vendor Name:</strong></td>
+                                        <td><t t-out="doc.quotation_id.vendor_id.company_name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Quotation Amount:</strong></td>
+                                        <td><t t-out="doc.quotation_id.quotation_amount" t-options='{"widget": "monetary", "display_currency": doc.quotation_id.currency_id}'/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>RFQ Reference:</strong></td>
+                                        <td><t t-out="doc.quotation_id.rfq_id.rfq_number"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <strong>Evaluation Parameters:</strong>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Approver Name:</strong></td>
+                                        <td><t t-out="doc.approver_id.name"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Approval Date:</strong></td>
+                                        <td><t t-out="doc.approval_date"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Decision Status:</strong></td>
+                                        <td>
+                                            <span class="badge bg-success" t-if="doc.state == 'approved'">Approved</span>
+                                            <span class="badge bg-danger" t-if="doc.state == 'rejected'">Rejected</span>
+                                            <span class="badge bg-warning" t-if="doc.state == 'pending'">Pending Review</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 p-3 border rounded-3 bg-light">
+                            <h5>Manager Remarks &amp; Feedback</h5>
+                            <p class="mb-0 mt-2" style="white-space: pre-wrap;"><t t-out="doc.remarks or 'No special remarks provided.'" class="italic"/></p>
+                        </div>
+
+                        <div class="mt-5 d-flex justify-content-between">
+                            <div>
+                                <p class="text-muted small">Generated on: <t t-out="context_timestamp(datetime.datetime.now()).strftime('%Y-%m-%d %H:%M:%S')"/></p>
+                            </div>
+                            <div class="text-center" style="width: 200px; border-top: 1px solid #000; padding-top: 5px;">
+                                <small>Authorized Signatory</small>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

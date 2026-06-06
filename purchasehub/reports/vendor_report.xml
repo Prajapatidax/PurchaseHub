@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_vendor_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page" style="font-family: 'Inter', sans-serif;">
+                        <div class="text-center mb-4" style="border-bottom: 2px solid #4a154b; padding-bottom: 10px;">
+                            <h2 style="color: #4a154b; font-weight: bold;">Vendor Profile Report</h2>
+                            <h4 class="text-muted"><t t-out="doc.company_name"/> (<t t-out="doc.vendor_code"/>)</h4>
+                        </div>
+
+                        <div class="row mb-4">
+                            <div class="col-6">
+                                <h5 style="color: #2b6cb0; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Contact Information</h5>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Contact Person:</strong></td>
+                                        <td><t t-out="doc.contact_person"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Email:</strong></td>
+                                        <td><t t-out="doc.email"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Phone:</strong></td>
+                                        <td><t t-out="doc.phone"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Address:</strong></td>
+                                        <td><t t-out="doc.address"/></td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h5 style="color: #2b6cb0; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Metadata</h5>
+                                <table class="table table-sm table-borderless">
+                                    <tr>
+                                        <td><strong>Category:</strong></td>
+                                        <td><t t-out="doc.vendor_category"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>GST Number:</strong></td>
+                                        <td><t t-out="doc.gst_number"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Rating:</strong></td>
+                                        <td><strong><t t-out="doc.rating"/> / 5.0</strong></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            <span class="badge bg-success" t-if="doc.status == 'active'">Active</span>
+                                            <span class="badge bg-secondary" t-if="doc.status == 'inactive'">Inactive</span>
+                                            <span class="badge bg-danger" t-if="doc.status == 'blacklisted'">Blacklisted</span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="mt-4">
+                            <h5 style="color: #2b6cb0; border-bottom: 1px solid #dee2e6; padding-bottom: 5px;">Quotation Submission History</h5>
+                            <t t-if="doc.quotation_ids">
+                                <table class="table table-striped table-sm mt-2">
+                                    <thead>
+                                        <tr class="table-light">
+                                            <th>Quote Number</th>
+                                            <th>RFQ</th>
+                                            <th>Date Submitted</th>
+                                            <th class="text-end">Amount</th>
+                                            <th>Lead Time</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr t-foreach="doc.quotation_ids" t-as="q">
+                                            <td><t t-out="q.quotation_number"/></td>
+                                            <td><t t-out="q.rfq_id.rfq_number"/></td>
+                                            <td><t t-out="q.submission_date" t-options='{"widget": "date"}'/></td>
+                                            <td class="text-end"><t t-out="q.quotation_amount" t-options='{"widget": "monetary", "display_currency": q.currency_id}'/></td>
+                                            <td><t t-out="q.delivery_days"/> Days</td>
+                                            <td><t t-out="q.status.upper()"/></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </t>
+                            <t t-else="">
+                                <p class="text-muted italic">No quotes submitted by this vendor yet.</p>
+                            </t>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

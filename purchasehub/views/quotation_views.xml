@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Quotation Tree View -->
+    <record id="view_purchasehub_quotation_tree" model="ir.ui.view">
+        <field name="name">purchasehub.quotation.tree</field>
+        <field name="model">purchasehub.quotation</field>
+        <field name="arch" type="xml">
+            <tree string="Quotations" decoration-info="status == 'draft'" decoration-warning="status == 'submitted'" decoration-success="status == 'approved'" decoration-danger="status == 'rejected'">
+                <field name="quotation_number"/>
+                <field name="vendor_id"/>
+                <field name="rfq_id"/>
+                <field name="quotation_amount"/>
+                <field name="delivery_days"/>
+                <field name="submission_date"/>
+                <field name="status" widget="badge" decoration-info="status == 'draft'" decoration-warning="status == 'submitted'" decoration-muted="status == 'under_review'" decoration-success="status == 'approved'" decoration-danger="status == 'rejected'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Quotation Form View -->
+    <record id="view_purchasehub_quotation_form" model="ir.ui.view">
+        <field name="name">purchasehub.quotation.form</field>
+        <field name="model">purchasehub.quotation</field>
+        <field name="arch" type="xml">
+            <form string="Vendor Quotation">
+                <header>
+                    <button name="action_submit" string="Submit to Officer" type="object" class="oe_highlight" invisible="status != 'draft'"/>
+                    <button name="action_under_review" string="Start Review" type="object" class="oe_highlight" invisible="status != 'submitted'" groups="purchasehub.group_officer,purchasehub.group_manager"/>
+                    <button name="action_approve" string="Approve &amp; Generate PO" type="object" class="oe_highlight" invisible="status not in ['submitted', 'under_review']" groups="purchasehub.group_manager"/>
+                    <button name="action_reject" string="Reject Quotation" type="object" invisible="status not in ['submitted', 'under_review']" groups="purchasehub.group_manager"/>
+                    <field name="status" widget="statusbar" statusbar_visible="draft,submitted,under_review,approved,rejected"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <label for="quotation_number" class="oe_edit_only"/>
+                        <h1>
+                            <field name="quotation_number" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group name="vendor_details" string="Vendor Information">
+                            <field name="vendor_id" options="{'no_create': True}" readonly="status != 'draft'"/>
+                            <field name="rfq_id" options="{'no_create': True}" readonly="status != 'draft'"/>
+                        </group>
+                        <group name="pricing_details" string="Delivery &amp; Dates">
+                            <field name="delivery_days" readonly="status != 'draft'"/>
+                            <field name="submission_date" readonly="1"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="lines" string="Quoted Items">
+                            <field name="line_ids" mode="tree" readonly="status != 'draft'">
+                                <tree editable="bottom">
+                                    <field name="product_id" readonly="1"/>
+                                    <field name="rfq_line_id" invisible="1"/>
+                                    <field name="quantity" readonly="1"/>
+                                    <field name="price_unit"/>
+                                    <field name="price_subtotal" readonly="1"/>
+                                </tree>
+                            </field>
+                            <group class="oe_subtotal_footer oe_right">
+                                <field name="quotation_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                            </group>
+                            <div class="oe_clear"/>
+                            <field name="notes" placeholder="Add terms, exclusions or delivery details..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- Quotation Search View -->
+    <record id="view_purchasehub_quotation_search" model="ir.ui.view">
+        <field name="name">purchasehub.quotation.search</field>
+        <field name="model">purchasehub.quotation</field>
+        <field name="arch" type="xml">
+            <search string="Search Quotations">
+                <field name="quotation_number"/>
+                <field name="vendor_id"/>
+                <field name="rfq_id"/>
+                <separator/>
+                <filter string="Draft" name="status_draft" domain="[('status', '=', 'draft')]"/>
+                <filter string="Submitted" name="status_submitted" domain="[('status', '=', 'submitted')]"/>
+                <filter string="Under Review" name="status_review" domain="[('status', '=', 'under_review')]"/>
+                <filter string="Approved" name="status_approved" domain="[('status', '=', 'approved')]"/>
+                <filter string="Rejected" name="status_rejected" domain="[('status', '=', 'rejected')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Vendor" name="group_by_vendor" context="{'group_by': 'vendor_id'}"/>
+                    <filter string="RFQ" name="group_by_rfq" context="{'group_by': 'rfq_id'}"/>
+                    <filter string="Status" name="group_by_status" context="{'group_by': 'status'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Quotations -->
+    <record id="action_purchasehub_quotation" model="ir.actions.act_window">
+        <field name="name">Quotations</field>
+        <field name="res_model">purchasehub.quotation</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_purchasehub_quotation_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Register a new quotation!
+            </p>
+            <p>
+                Vendors submit their prices and lead times against active RFQs. Officers review and managers approve quotes.
+            </p>
+        </field>
+    </record>
+</odoo>

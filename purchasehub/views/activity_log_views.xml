@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Activity Log Tree View -->
+    <record id="view_purchasehub_activity_log_tree" model="ir.ui.view">
+        <field name="name">purchasehub.activity.log.tree</field>
+        <field name="model">purchasehub.activity.log</field>
+        <field name="arch" type="xml">
+            <tree string="Activity Logs" create="false" edit="false" delete="false">
+                <field name="timestamp"/>
+                <field name="user_id"/>
+                <field name="activity_type" widget="badge"/>
+                <field name="model_name"/>
+                <field name="record_id"/>
+                <field name="display_name"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Activity Log Search View -->
+    <record id="view_purchasehub_activity_log_search" model="ir.ui.view">
+        <field name="name">purchasehub.activity.log.search</field>
+        <field name="model">purchasehub.activity.log</field>
+        <field name="arch" type="xml">
+            <search string="Search Activity Logs">
+                <field name="user_id"/>
+                <field name="model_name"/>
+                <separator/>
+                <filter string="Created" name="act_create" domain="[('activity_type', '=', 'create')]"/>
+                <filter string="Modified" name="act_write" domain="[('activity_type', '=', 'write')]"/>
+                <filter string="Deleted" name="act_delete" domain="[('activity_type', '=', 'delete')]"/>
+                <filter string="Status Changes" name="act_status" domain="[('activity_type', '=', 'status_change')]"/>
+                <group expand="0" string="Group By">
+                    <filter string="Triggered By" name="group_by_user" context="{'group_by': 'user_id'}"/>
+                    <filter string="Activity Type" name="group_by_type" context="{'group_by': 'activity_type'}"/>
+                    <filter string="Model" name="group_by_model" context="{'group_by': 'model_name'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action for Activity Logs -->
+    <record id="action_purchasehub_activity_log" model="ir.actions.act_window">
+        <field name="name">Activity Audit Logs</field>
+        <field name="res_model">purchasehub.activity.log</field>
+        <field name="view_mode">tree</field>
+        <field name="search_view_id" ref="view_purchasehub_activity_log_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No activity logs.
+            </p>
+            <p>
+                The system automatically logs crucial actions like creations, edits, status updates, and deletions.
+            </p>
+        </field>
+    </record>
+</odoo>

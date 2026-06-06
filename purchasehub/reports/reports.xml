@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- 1. Vendor Profile Report -->
+    <record id="action_report_vendor" model="ir.actions.report">
+        <field name="name">Vendor Profile</field>
+        <field name="model">purchasehub.vendor</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_vendor_template</field>
+        <field name="report_file">purchasehub.report_vendor_template</field>
+        <field name="print_report_name">'Vendor_Profile_%s' % (object.company_name)</field>
+        <field name="binding_model_id" ref="model_purchasehub_vendor"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+
+    <!-- 2. RFQ Report -->
+    <record id="action_report_rfq" model="ir.actions.report">
+        <field name="name">Request for Quotation</field>
+        <field name="model">purchasehub.rfq</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_rfq_template</field>
+        <field name="report_file">purchasehub.report_rfq_template</field>
+        <field name="print_report_name">'RFQ_%s' % (object.rfq_number)</field>
+        <field name="binding_model_id" ref="model_purchasehub_rfq"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+
+    <!-- 3. Quotation Report -->
+    <record id="action_report_quotation" model="ir.actions.report">
+        <field name="name">Vendor Quotation</field>
+        <field name="model">purchasehub.quotation</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_quotation_template</field>
+        <field name="report_file">purchasehub.report_quotation_template</field>
+        <field name="print_report_name">'Quotation_%s' % (object.quotation_number)</field>
+        <field name="binding_model_id" ref="model_purchasehub_quotation"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+
+    <!-- 4. Approval Report -->
+    <record id="action_report_approval" model="ir.actions.report">
+        <field name="name">Approval Record</field>
+        <field name="model">purchasehub.approval</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_approval_template</field>
+        <field name="report_file">purchasehub.report_approval_template</field>
+        <field name="print_report_name">'Approval_%s' % (object.approval_number)</field>
+        <field name="binding_model_id" ref="model_purchasehub_approval"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+
+    <!-- 5. Purchase Order Report -->
+    <record id="action_report_purchase_order" model="ir.actions.report">
+        <field name="name">Purchase Order</field>
+        <field name="model">purchasehub.purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_purchase_order_template</field>
+        <field name="report_file">purchasehub.report_purchase_order_template</field>
+        <field name="print_report_name">'Purchase_Order_%s' % (object.po_number)</field>
+        <field name="binding_model_id" ref="model_purchasehub_purchase_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+
+    <!-- 6. Invoice Report -->
+    <record id="action_report_invoice" model="ir.actions.report">
+        <field name="name">Supplier Invoice</field>
+        <field name="model">purchasehub.invoice</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_invoice_template</field>
+        <field name="report_file">purchasehub.report_invoice_template</field>
+        <field name="print_report_name">'Invoice_%s' % (object.invoice_number)</field>
+        <field name="binding_model_id" ref="model_purchasehub_invoice"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+
+    <!-- 7. Procurement Summary Report (Multi-record action or general print) -->
+    <record id="action_report_summary" model="ir.actions.report">
+        <field name="name">Procurement Summary Report</field>
+        <field name="model">purchasehub.purchase.order</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">purchasehub.report_summary_template</field>
+        <field name="report_file">purchasehub.report_summary_template</field>
+        <field name="print_report_name">'Procurement_Summary_%s' % (fields.Date.today())</field>
+        <field name="binding_model_id" ref="model_purchasehub_purchase_order"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="paperformat_purchasehub"/>
+    </record>
+</odoo>

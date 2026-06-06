@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates xml:space="preserve">
+    <t t-name="purchasehub.ComparisonTemplate">
+        <div class="purchasehub-comparison container-fluid py-4 bg-light overflow-auto" style="height: 100%;">
+            <!-- Header Banner -->
+            <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded-3 shadow-sm border">
+                <div class="d-flex align-items-center gap-3">
+                    <button class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" t-on-click="goBack" style="width: 36px; height: 36px;">
+                        <i class="fa fa-chevron-left"></i>
+                    </button>
+                    <div>
+                        <h2 class="fw-bold mb-1 text-dark" style="font-size: 20px;">
+                            Compare Quotations - <t t-out="state.rfqData.rfq_number"/>
+                        </h2>
+                        <p class="mb-0 text-muted small"><t t-out="state.rfqData.rfq_title"/></p>
+                    </div>
+                </div>
+                
+                <!-- Sorting & Filtering Controls -->
+                <div class="d-flex align-items-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small fw-semibold">Sort by:</span>
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" t-attf-class="btn btn-outline-primary {{ state.sortBy == 'price' ? 'active' : '' }}" t-on-click="() => this.setSortBy('price')">Price</button>
+                            <button type="button" t-attf-class="btn btn-outline-primary {{ state.sortBy == 'delivery' ? 'active' : '' }}" t-on-click="() => this.setSortBy('delivery')">Delivery</button>
+                            <button type="button" t-attf-class="btn btn-outline-primary {{ state.sortBy == 'rating' ? 'active' : '' }}" t-on-click="() => this.setSortBy('rating')">Rating</button>
+                            <button type="button" t-attf-class="btn btn-outline-primary {{ state.sortBy == 'recommendation' ? 'active' : '' }}" t-on-click="() => this.setSortBy('recommendation')">Recommendation</button>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="text-muted small fw-semibold">Filter:</span>
+                        <select class="form-select form-select-sm" t-on-change="(ev) => this.setFilterStatus(ev.target.value)" style="width: 140px;">
+                            <option value="all">All Statuses</option>
+                            <option value="submitted">Submitted</option>
+                            <option value="under_review">Under Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loader State -->
+            <t t-if="state.loading">
+                <div class="d-flex justify-content-center align-items-center py-5" style="min-height: 400px;">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </t>
+
+            <!-- Main Matrix Grid -->
+            <t t-else="">
+                <t t-if="state.sortedQuotations.length == 0">
+                    <div class="card p-5 text-center shadow-sm border-0 rounded-3 bg-white">
+                        <i class="fa fa-clipboard-list fs-1 text-muted mb-3"></i>
+                        <h4 class="fw-bold text-dark">No Quotations Found</h4>
+                        <p class="text-muted mb-0">There are no submitted vendor quotations to compare for this RFQ yet.</p>
+                    </div>
+                </t>
+                
+                <t t-else="">
+                    <div class="card shadow-sm border-0 rounded-3 bg-white p-4 overflow-auto">
+                        <table class="table table-bordered align-middle text-center mb-0" style="min-width: 800px;">
+                            <!-- Table Headers -->
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="text-start bg-white border-0" style="width: 25%;">
+                                        <div class="fw-bold text-uppercase text-muted small">RFQ Items Matrix</div>
+                                    </th>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <th style="width: 25%;" t-attf-class="{{ quote.id == state.highlights.recommendedId ? 'border-primary border-4 bg-light' : '' }}">
+                                            <!-- Recommendation Badge -->
+                                            <div class="mb-2" style="min-height: 25px;">
+                                                <t t-if="quote.id == state.highlights.recommendedId">
+                                                    <span class="badge bg-primary text-white px-3 py-1 rounded-pill uppercase text-xs">
+                                                        <i class="fa fa-star"></i> Recommended
+                                                    </span>
+                                                </t>
+                                            </div>
+                                            
+                                            <!-- Vendor & Info -->
+                                            <h5 class="fw-bold mb-1 text-dark"><t t-out="quote.vendor_name"/></h5>
+                                            <div class="text-muted small mb-2"><t t-out="quote.quotation_number"/></div>
+                                            
+                                            <!-- Vendor Rating -->
+                                            <div class="mb-2 d-flex justify-content-center align-items-center gap-1">
+                                                <span class="small text-muted fw-bold">Rating:</span>
+                                                <span class="badge bg-warning text-dark px-2 py-0.5 rounded-sm">
+                                                    <t t-out="quote.vendor_rating"/> ★
+                                                </span>
+                                            </div>
+                                        </th>
+                                    </t>
+                                </tr>
+                            </thead>
+                            
+                            <tbody>
+                                <!-- Score Row -->
+                                <tr class="table-light">
+                                    <td class="text-start fw-bold text-muted small">Calculated Value Match</td>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <td class="fw-bold" t-attf-class="{{ quote.id == state.highlights.recommendedId ? 'text-primary' : 'text-dark' }}">
+                                            <t t-out="quote.score"/>% Score
+                                        </td>
+                                    </t>
+                                </tr>
+
+                                <!-- Total Quote Amount Row -->
+                                <tr>
+                                    <td class="text-start fw-bold text-dark">Total Quotation Value</td>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <td>
+                                            <div class="fw-bold fs-5 text-dark">
+                                                <t t-out="quote.quotation_amount"/>
+                                            </div>
+                                            <t t-if="quote.id == state.highlights.lowestPriceId">
+                                                <span class="badge bg-success-light text-success text-xs px-2 py-0.5 rounded">
+                                                    <i class="fa fa-check"></i> Lowest Price
+                                                </span>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+
+                                <!-- Delivery lead time Row -->
+                                <tr>
+                                    <td class="text-start fw-bold text-dark">Delivery Lead Time</td>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <td>
+                                            <div class="fw-semibold text-dark"><t t-out="quote.delivery_days"/> Days</div>
+                                            <t t-if="quote.id == state.highlights.fastestDeliveryId">
+                                                <span class="badge bg-info-light text-info text-xs px-2 py-0.5 rounded">
+                                                    <i class="fa fa-rocket"></i> Fastest Delivery
+                                                </span>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+
+                                <!-- Quote Status Row -->
+                                <tr>
+                                    <td class="text-start fw-bold text-dark">Status</td>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <td>
+                                            <span class="badge text-uppercase" t-attf-class="badge-{{ quote.status == 'approved' ? 'success' : (quote.status == 'rejected' ? 'danger' : 'secondary') }}">
+                                                <t t-out="quote.status"/>
+                                            </span>
+                                        </td>
+                                    </t>
+                                </tr>
+
+                                <!-- Row Spacer / Header for Line Details -->
+                                <tr class="table-secondary">
+                                    <td colspan="100%" class="text-start fw-bold text-dark py-2">Line Item Breakouts</td>
+                                </tr>
+
+                                <!-- Detail Rows for each RFQ line -->
+                                <t t-foreach="state.rfqData.rfq_lines" t-as="rfq_line" t-key="rfq_line.id">
+                                    <tr>
+                                        <!-- Item column -->
+                                        <td class="text-start">
+                                            <div class="fw-bold text-dark"><t t-out="rfq_line.product_name"/></div>
+                                            <div class="text-muted small">Qty requested: <t t-out="rfq_line.quantity"/></div>
+                                        </td>
+                                        
+                                        <!-- Price per quote column -->
+                                        <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                            <td>
+                                                <t t-if="quote.line_prices[rfq_line.id]">
+                                                    <div class="text-dark small">
+                                                        Unit: <strong><t t-out="quote.line_prices[rfq_line.id].price_unit"/></strong>
+                                                    </div>
+                                                    <div class="text-muted small">
+                                                        Subtotal: <t t-out="quote.line_prices[rfq_line.id].price_subtotal"/>
+                                                    </div>
+                                                </t>
+                                                <t t-else="">
+                                                    <span class="text-muted text-xs">Not quoted</span>
+                                                </t>
+                                            </td>
+                                        </t>
+                                    </tr>
+                                </t>
+
+                                <!-- Notes Row -->
+                                <tr>
+                                    <td class="text-start fw-bold text-dark">Notes / Exclusions</td>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <td class="text-muted small text-start py-3" style="max-width: 250px;">
+                                            <t t-out="quote.notes"/>
+                                        </td>
+                                    </t>
+                                </tr>
+
+                                <!-- Action buttons Row -->
+                                <tr class="table-light">
+                                    <td class="text-start fw-bold text-dark">Actions</td>
+                                    <t t-foreach="state.sortedQuotations" t-as="quote" t-key="quote.id">
+                                        <td>
+                                            <t t-if="quote.status in ['submitted', 'under_review']">
+                                                <div class="d-flex flex-column gap-2 p-2">
+                                                    <button class="btn btn-success btn-sm w-100 fw-bold shadow-sm" t-on-click="() => this.approveQuotation(quote.id)">
+                                                        <i class="fa fa-thumbs-up"></i> Approve &amp; Create PO
+                                                    </button>
+                                                    <button class="btn btn-outline-danger btn-sm w-100" t-on-click="() => this.rejectQuotation(quote.id)">
+                                                        <i class="fa fa-times"></i> Reject
+                                                    </button>
+                                                </div>
+                                            </t>
+                                            <t t-else="">
+                                                <div class="p-2 text-muted small italic">
+                                                    Evaluation complete
+                                                </div>
+                                            </t>
+                                        </td>
+                                    </t>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </div>
+    </t>
+</templates>
