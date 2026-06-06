@@ -190,7 +190,7 @@ function checkRoleGuards(viewName) {
     return true;
 }
 
-function triggerViewLoader(viewName) {
+async function triggerViewLoader(viewName) {
     if (!checkRoleGuards(viewName)) return;
 
     // Clean active states and modals
@@ -777,7 +777,10 @@ async function openOfficerQuoteModal(quoteId = null) {
     }
 
     const form = document.getElementById('officer-quote-form');
-    if (form) form.reset();
+    if (form) {
+        form.reset();
+        form.onsubmit = saveOfficerQuotation;
+    }
 
     const titleEl = modal.querySelector('.modal-title');
 

@@ -122,9 +122,78 @@
                                 </tbody>
                             </table>
                         </div>
-                        <erp-pagination></erp-pagination>
                     </div>
                 </div>
+
+                <!-- CREATE/EDIT QUOTATION MODAL FOR OFFICERS/ADMINS -->
+                <erp-modal id="officer-quote-modal" title="Create Quotation Proposal">
+                     <form id="officer-quote-form" class="p-6 space-y-4">
+                          <input type="hidden" id="oq-id">
+                          <div class="grid grid-cols-2 gap-4">
+                              <div class="mb-3.5">
+                                  <label for="oq-vendor-id" class="block text-xs font-semibold text-slate-655 uppercase mb-1">Vendor Partner</label>
+                                  <select id="oq-vendor-id" required class="w-full focus:outline-none focus:border-[#714B67]"></select>
+                              </div>
+                              <div class="mb-3.5">
+                                  <label for="oq-rfq-id" class="block text-xs font-semibold text-slate-655 uppercase mb-1">RFQ Reference</label>
+                                  <select id="oq-rfq-id" required class="w-full focus:outline-none focus:border-[#714B67]"></select>
+                              </div>
+                          </div>
+                          <div class="grid grid-cols-2 gap-4">
+                              <erp-form-input id="oq-price" label="Unit Price ($)" type="number" min="0.01" step="0.01" required></erp-form-input>
+                              <erp-form-input id="oq-days" label="Delivery Lead Time (Days)" type="number" min="1" required></erp-form-input>
+                          </div>
+                          <div class="mb-3.5">
+                              <label for="oq-notes" class="block text-xs font-semibold text-slate-655 uppercase mb-1">Proposal Notes / Specifications</label>
+                              <textarea id="oq-notes" rows="3" placeholder="Enter quote details..." class="w-full focus:outline-none focus:border-[#714B67]"></textarea>
+                          </div>
+                          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
+                              <button type="button" onclick="closeOfficerQuoteModal()" class="btn-secondary">Cancel</button>
+                              <button type="submit" class="btn-primary">Save Quotation</button>
+                          </div>
+                     </form>
+                </erp-modal>
+
+                <!-- VIEW QUOTATION DETAIL MODAL -->
+                <erp-modal id="view-quote-modal" title="Quotation Detail" size="sm">
+                     <div class="p-6 space-y-4 text-slate-700">
+                          <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
+                              <span id="vq-ref-id" class="text-xs font-bold text-indigo-600 font-mono">Q-XXXX</span>
+                              <span id="vq-status" class="px-2 py-0.5 rounded text-[10px] font-bold"></span>
+                          </div>
+                          <div class="grid grid-cols-2 gap-4 text-xs">
+                              <div>
+                                  <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Vendor</span>
+                                  <span id="vq-vendor" class="font-bold text-slate-800"></span>
+                              </div>
+                              <div>
+                                  <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">RFQ Ref</span>
+                                  <span id="vq-rfq" class="font-bold text-slate-800"></span>
+                              </div>
+                          </div>
+                          <div class="grid grid-cols-2 gap-4 text-xs">
+                              <div>
+                                  <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Bid Price</span>
+                                  <span id="vq-price" class="font-bold text-slate-900"></span>
+                              </div>
+                              <div>
+                                  <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Delivery Time</span>
+                                  <span id="vq-days" class="font-bold text-slate-800"></span>
+                              </div>
+                          </div>
+                          <div class="text-xs">
+                              <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Submitted Date</span>
+                              <span id="vq-date" class="font-bold text-slate-800"></span>
+                          </div>
+                          <div class="bg-slate-50 p-3 rounded-lg border border-slate-150 text-xs">
+                              <span class="text-slate-455 block font-semibold uppercase text-[9px] tracking-wider mb-1">Proposal Notes / Specifications</span>
+                              <p id="vq-notes" class="text-slate-600 italic whitespace-pre-wrap leading-relaxed"></p>
+                          </div>
+                          <div class="flex justify-end pt-4 border-t border-slate-100">
+                              <button type="button" onclick="closeViewQuoteModal()" class="btn-secondary">Close</button>
+                          </div>
+                     </div>
+                </erp-modal>
             </main>
         </div>
     </div>
@@ -275,76 +344,6 @@
                      </div>
                  </div>
              </div>
-         </div>
-    </erp-modal>
-
-    <!-- CREATE/EDIT QUOTATION MODAL FOR OFFICERS/ADMINS -->
-    <erp-modal id="officer-quote-modal" title="Create Quotation Proposal">
-         <form id="officer-quote-form" class="p-6 space-y-4">
-              <input type="hidden" id="oq-id">
-              <div class="grid grid-cols-2 gap-4">
-                  <div class="mb-3.5">
-                      <label for="oq-vendor-id" class="block text-xs font-semibold text-slate-655 uppercase mb-1">Vendor Partner</label>
-                      <select id="oq-vendor-id" required class="w-full focus:outline-none focus:border-[#714B67]"></select>
-                  </div>
-                  <div class="mb-3.5">
-                      <label for="oq-rfq-id" class="block text-xs font-semibold text-slate-655 uppercase mb-1">RFQ Reference</label>
-                      <select id="oq-rfq-id" required class="w-full focus:outline-none focus:border-[#714B67]"></select>
-                  </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4">
-                  <erp-form-input id="oq-price" label="Unit Price ($)" type="number" min="0.01" step="0.01" required></erp-form-input>
-                  <erp-form-input id="oq-days" label="Delivery Lead Time (Days)" type="number" min="1" required></erp-form-input>
-              </div>
-              <div class="mb-3.5">
-                  <label for="oq-notes" class="block text-xs font-semibold text-slate-655 uppercase mb-1">Proposal Notes / Specifications</label>
-                  <textarea id="oq-notes" rows="3" placeholder="Enter quote details..." class="w-full focus:outline-none focus:border-[#714B67]"></textarea>
-              </div>
-              <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">
-                  <button type="button" onclick="closeOfficerQuoteModal()" class="btn-secondary">Cancel</button>
-                  <button type="submit" class="btn-primary">Save Quotation</button>
-              </div>
-         </form>
-    </erp-modal>
-
-    <!-- VIEW QUOTATION DETAIL MODAL -->
-    <erp-modal id="view-quote-modal" title="Quotation Detail" size="sm">
-         <div class="p-6 space-y-4 text-slate-700">
-              <div class="border-b border-slate-100 pb-3 flex justify-between items-center">
-                  <span id="vq-ref-id" class="text-xs font-bold text-indigo-600 font-mono">Q-XXXX</span>
-                  <span id="vq-status" class="px-2 py-0.5 rounded text-[10px] font-bold"></span>
-              </div>
-              <div class="grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                      <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Vendor</span>
-                      <span id="vq-vendor" class="font-bold text-slate-800"></span>
-                  </div>
-                  <div>
-                      <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">RFQ Ref</span>
-                      <span id="vq-rfq" class="font-bold text-slate-800"></span>
-                  </div>
-              </div>
-              <div class="grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                      <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Bid Price</span>
-                      <span id="vq-price" class="font-bold text-slate-900"></span>
-                  </div>
-                  <div>
-                      <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Delivery Time</span>
-                      <span id="vq-days" class="font-bold text-slate-800"></span>
-                  </div>
-              </div>
-              <div class="text-xs">
-                  <span class="text-slate-400 block font-semibold uppercase text-[9px] tracking-wider">Submitted Date</span>
-                  <span id="vq-date" class="font-bold text-slate-800"></span>
-              </div>
-              <div class="bg-slate-50 p-3 rounded-lg border border-slate-150 text-xs">
-                  <span class="text-slate-455 block font-semibold uppercase text-[9px] tracking-wider mb-1">Proposal Notes / Specifications</span>
-                  <p id="vq-notes" class="text-slate-600 italic whitespace-pre-wrap leading-relaxed"></p>
-              </div>
-              <div class="flex justify-end pt-4 border-t border-slate-100">
-                  <button type="button" onclick="closeViewQuoteModal()" class="btn-secondary">Close</button>
-              </div>
          </div>
     </erp-modal>
 
