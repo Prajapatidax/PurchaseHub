@@ -22,32 +22,32 @@ def seed_database():
                 role="Admin"
             ),
             models.User(
-                name="Sarah Jenkins (Procurement)",
+                name="Priya Sharma (Procurement)",
                 email="officer@vendorbridge.com",
                 password_hash=security.hash_password("officerpassword"),
                 role="Procurement Officer"
             ),
             models.User(
-                name="Marcus Vance (Finance Manager)",
+                name="Amit Verma (Finance Manager)",
                 email="manager@vendorbridge.com",
                 password_hash=security.hash_password("managerpassword"),
                 role="Manager"
             ),
             # Vendor Users
             models.User(
-                name="Dell Enterprise Account",
+                name="Dell India Enterprise Account",
                 email="bids@dell.com",
                 password_hash=security.hash_password("dellpassword"),
                 role="Vendor"
             ),
             models.User(
-                name="HP Corporate Sales",
+                name="HP India Corporate Sales",
                 email="partners@hp.com",
                 password_hash=security.hash_password("hppassword"),
                 role="Vendor"
             ),
             models.User(
-                name="Lenovo Business Bids",
+                name="Lenovo India Business Bids",
                 email="enterprise@lenovo.com",
                 password_hash=security.hash_password("lenovopassword"),
                 role="Vendor"
@@ -66,32 +66,32 @@ def seed_database():
         print("Creating Vendor Profiles...")
         vendors = [
             models.Vendor(
-                company_name="Dell Technologies",
-                gst_number="GST-DL849203",
+                company_name="Dell India Pvt. Ltd.",
+                gst_number="29AABCD1234A1Z5",
                 category="IT Hardware",
                 email="bids@dell.com",
-                phone="+1 (800) 555-1234",
-                address="One Dell Way, Round Rock, TX 78682, USA",
+                phone="+91 80 2510 8000",
+                address="Inner Ring Road, Domlur, Bengaluru, Karnataka 560071, India",
                 rating=4.8,
                 status="Active"
             ),
             models.Vendor(
-                company_name="HP Enterprise",
-                gst_number="GST-HP203948",
+                company_name="HP India Sales Pvt. Ltd.",
+                gst_number="06AABCH4829A1Z2",
                 category="IT Infrastructure",
                 email="partners@hp.com",
-                phone="+1 (800) 555-5678",
-                address="1701 E Mossy Oaks Rd, Spring, TX 77389, USA",
+                phone="+91 124 670 3000",
+                address="DLF Cyber City, Phase III, Sector 24, Gurgaon, Haryana 122002, India",
                 rating=4.9,
                 status="Active"
             ),
             models.Vendor(
-                company_name="Lenovo Business",
-                gst_number="GST-LN482910",
+                company_name="Lenovo India Pvt. Ltd.",
+                gst_number="29AABCL4829A1Z3",
                 category="IT Hardware",
                 email="enterprise@lenovo.com",
-                phone="+1 (800) 555-9012",
-                address="8001 Development Dr, Morrisville, NC 27560, USA",
+                phone="+91 80 3053 3000",
+                address="Ferns Icon, Marathahalli, Bengaluru, Karnataka 560037, India",
                 rating=4.7,
                 status="Active"
             )
@@ -171,11 +171,11 @@ def seed_database():
         db.flush()
 
         # 5. CREATE APPROVAL RECORD
-        print("Creating Manager Approval for HP Enterprise...")
+        print("Creating Manager Approval for HP India Sales Pvt. Ltd....")
         approval = models.Approval(
             rfq_id=rfq.id,
             manager_id=manager_id,
-            remarks="HP Enterprise matches all engineering specifications, offers the lowest bid ($47,000) and the fastest delivery timeline (7 days). Approved.",
+            remarks="HP India Sales Pvt. Ltd. matches all engineering specifications, offers the lowest bid (Rs. 47,000) and the fastest delivery timeline (7 days). Approved.",
             status="Approved",
             approved_at=datetime.datetime.utcnow() - datetime.timedelta(hours=18)
         )
@@ -213,14 +213,14 @@ def seed_database():
         print("Populating Activity Logs...")
         logs = [
             models.ActivityLog(user_id=officer_id, action="Created RFQ #1: '50 Business Laptops' and assigned Dell, HP, and Lenovo.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=3)),
-            models.ActivityLog(user_id=dell_user_id, action="Vendor 'Dell Technologies' submitted Quotation for RFQ #1 ($50,000.00).", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=2)),
-            models.ActivityLog(user_id=hp_user_id, action="Vendor 'HP Enterprise' submitted Quotation for RFQ #1 ($47,000.00).", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=2, hours=4)),
-            models.ActivityLog(user_id=lenovo_user_id, action="Vendor 'Lenovo Business' submitted Quotation for RFQ #1 ($49,000.00).", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=1)),
-            models.ActivityLog(user_id=officer_id, action="Procurement Officer selected HP Enterprise's quotation ($47,000.00) as the winner and submitted it for Manager Approval.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=20)),
-            models.ActivityLog(user_id=manager_id, action="Manager Marcus Vance approved RFQ #1. Remarks: HP matches all specs, offers the lowest bid and fastest delivery.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=18)),
-            models.ActivityLog(user_id=None, action="System automatically generated Purchase Order PO-2026-1049 for HP Enterprise.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=17)),
-            models.ActivityLog(user_id=hp_user_id, action="Vendor 'HP Enterprise' accepted Purchase Order PO-2026-1049.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=16, minutes=30)),
-            models.ActivityLog(user_id=hp_user_id, action="Vendor 'HP Enterprise' generated Invoice INV-2026-9281 for PO PO-2026-1049.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=16))
+            models.ActivityLog(user_id=dell_user_id, action="Vendor 'Dell India Pvt. Ltd.' submitted Quotation for RFQ #1 (Rs. 50,000.00).", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=2)),
+            models.ActivityLog(user_id=hp_user_id, action="Vendor 'HP India Sales Pvt. Ltd.' submitted Quotation for RFQ #1 (Rs. 47,000.00).", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=2, hours=4)),
+            models.ActivityLog(user_id=lenovo_user_id, action="Vendor 'Lenovo India Pvt. Ltd.' submitted Quotation for RFQ #1 (Rs. 49,000.00).", timestamp=datetime.datetime.utcnow() - datetime.timedelta(days=1)),
+            models.ActivityLog(user_id=officer_id, action="Procurement Officer selected HP India Sales Pvt. Ltd.'s quotation (Rs. 47,000.00) as the winner and submitted it for Manager Approval.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=20)),
+            models.ActivityLog(user_id=manager_id, action="Manager Amit Verma approved RFQ #1. Remarks: HP matches all specs, offers the lowest bid and fastest delivery.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=18)),
+            models.ActivityLog(user_id=None, action="System automatically generated Purchase Order PO-2026-1049 for HP India Sales Pvt. Ltd..", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=17)),
+            models.ActivityLog(user_id=hp_user_id, action="Vendor 'HP India Sales Pvt. Ltd.' accepted Purchase Order PO-2026-1049.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=16, minutes=30)),
+            models.ActivityLog(user_id=hp_user_id, action="Vendor 'HP India Sales Pvt. Ltd.' generated Invoice INV-2026-9281 for PO PO-2026-1049.", timestamp=datetime.datetime.utcnow() - datetime.timedelta(hours=16))
         ]
         db.add_all(logs)
         

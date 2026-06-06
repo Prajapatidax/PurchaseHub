@@ -7,7 +7,7 @@ class ErpAnalyticsCard extends HTMLElement {
     connectedCallback() { this.render(); }
     render() {
         const title = this.getAttribute('title') || '';
-        const value = this.getAttribute('value') || '$0.00';
+        const value = this.getAttribute('value') || 'Rs. 0.00';
         const trend = this.getAttribute('trend') || '';
         const icon = this.getAttribute('icon') || '';
         const subtitle = this.getAttribute('subtitle') || '';
@@ -87,7 +87,7 @@ window.renderSpendTrendChart = function(containerId, data) {
                 stroke: "#714B67",
                 strokeWidth: 2,
                 activeDot: { r: 6 },
-                name: "Spend ($)"
+                name: "Spend (Rs.)"
             })
         )
     );
@@ -134,7 +134,7 @@ window.renderSpendCategoryChart = function(containerId, data) {
                     borderRadius: '8px',
                     fontSize: '11px'
                 },
-                formatter: (value) => `$${value.toLocaleString()}`
+                formatter: (value) => `Rs. ${value.toLocaleString()}`
             }),
             React.createElement(Legend, {
                 verticalAlign: "bottom",

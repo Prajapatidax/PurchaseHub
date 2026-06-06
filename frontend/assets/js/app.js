@@ -1,8 +1,8 @@
 // PurchaseHub ERP - Main Application Controller
 
 const settingsState = {
-    companyName: localStorage.getItem('settings_company_name') || 'My Company (San Francisco)',
-    companyGst: localStorage.getItem('settings_company_gst') || 'GST-US940219',
+    companyName: localStorage.getItem('settings_company_name') || 'My Company (New Delhi)',
+    companyGst: localStorage.getItem('settings_company_gst') || '07AAAAA1111A1Z1',
     autoPublish: localStorage.getItem('settings_auto_publish') !== 'false',
     requireApproval: localStorage.getItem('settings_require_approval') !== 'false',
     autoPO: localStorage.getItem('settings_auto_po') !== 'false',
@@ -369,7 +369,7 @@ async function loadDashboard() {
     
     // Set KPI Attributes on Custom Elements
     const kpiSpend = document.getElementById('kpi-spend');
-    if (kpiSpend) kpiSpend.setAttribute('value', `$${kpis.total_spend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
+    if (kpiSpend) kpiSpend.setAttribute('value', `Rs. ${kpis.total_spend.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
 
     const kpiVendors = document.getElementById('kpi-vendors');
     if (kpiVendors) kpiVendors.setAttribute('value', kpis.total_vendors.toString());
@@ -639,7 +639,7 @@ async function loadVendorPortal() {
                         </div>
                     </div>
                     <div class="text-right">
-                        <div class="text-sm font-bold text-slate-800">$${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
+                        <div class="text-sm font-bold text-slate-800">Rs. ${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</div>
                         <button onclick="openSubmitQuoteModal(${q.rfq_id}, ${q.price}, ${q.delivery_days}, '${q.notes || ''}')" class="text-brand-600 hover:text-brand-700 text-[10px] font-bold hover:underline mt-1 block">Edit Bid</button>
                     </div>
                 `;
@@ -698,7 +698,7 @@ function renderQuotationsLedger(quotes) {
             <td class="py-4 px-6 font-bold text-slate-800 font-mono">Q-${q.id}</td>
             <td class="py-4 px-6 font-mono text-xs text-indigo-600 font-semibold">RFQ #${q.rfq_id}</td>
             <td class="py-4 px-6 font-semibold text-slate-800">${q.vendor ? q.vendor.company_name : 'Unknown'}</td>
-            <td class="py-4 px-6 font-bold text-slate-900">$${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="py-4 px-6 font-bold text-slate-900">Rs. ${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
             <td class="py-4 px-6 text-slate-600">${q.delivery_days} Days</td>
             <td class="py-4 px-6">${statusBadge}</td>
             <td class="py-4 px-6 text-slate-500 text-xs">${new Date(q.submitted_at).toLocaleDateString()}</td>
@@ -899,7 +899,7 @@ async function viewQuotation(quoteId) {
 
     document.getElementById('vq-vendor').textContent = q.vendor ? q.vendor.company_name : 'N/A';
     document.getElementById('vq-rfq').textContent = `RFQ #${q.rfq_id}`;
-    document.getElementById('vq-price').textContent = `$${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    document.getElementById('vq-price').textContent = `Rs. ${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     document.getElementById('vq-days').textContent = `${q.delivery_days} Days`;
     document.getElementById('vq-date').textContent = new Date(q.submitted_at).toLocaleString();
     document.getElementById('vq-notes').textContent = q.notes || 'No notes provided.';
@@ -997,7 +997,7 @@ async function loadComparisonData() {
     if (lowestVendor) lowestVendor.textContent = lowestQuote.vendor.company_name;
 
     const lowestValue = document.getElementById('highlight-lowest-value');
-    if (lowestValue) lowestValue.textContent = `$${lowestQuote.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    if (lowestValue) lowestValue.textContent = `Rs. ${lowestQuote.price.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
     
     const fastestVendor = document.getElementById('highlight-fastest-vendor');
     if (fastestVendor) fastestVendor.textContent = fastestQuote.vendor.company_name;
@@ -1092,7 +1092,7 @@ function renderComparisonCards(quotes) {
                 <div class="mt-4 space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-slate-400 text-xs">Bidded Total Amount</span>
-                        <span class="text-lg font-bold text-slate-800">$${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
+                        <span class="text-lg font-bold text-slate-800">Rs. ${q.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span class="text-slate-400 text-xs">Delivery Days</span>
@@ -1188,7 +1188,7 @@ async function loadApprovals() {
             <td class="py-4 px-6 font-mono text-xs text-indigo-650 font-bold">RFQ #${r.id}</td>
             <td class="py-4 px-6 font-semibold text-slate-800">${r.title}</td>
             <td class="py-4 px-6 font-medium text-slate-700">${quote.vendor.company_name}</td>
-            <td class="py-4 px-6 font-bold text-slate-900">$${quote.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="py-4 px-6 font-bold text-slate-900">Rs. ${quote.price.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
             <td class="py-4 px-6 text-slate-600">${quote.delivery_days} Days</td>
             <td class="py-4 px-6 text-right">${actionHTML}</td>
         `;
@@ -1293,7 +1293,7 @@ async function loadPurchaseOrders() {
             <td class="py-4 px-6 font-bold text-slate-800 font-mono">${po.po_number}</td>
             <td class="py-4 px-6 font-semibold text-slate-800">${po.vendor.company_name}</td>
             <td class="py-4 px-6 font-mono text-xs text-indigo-550">RFQ #${po.rfq_id}</td>
-            <td class="py-4 px-6 font-bold text-slate-900">$${po.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="py-4 px-6 font-bold text-slate-900">Rs. ${po.amount.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
             <td class="py-4 px-6 text-slate-650">${new Date(po.created_at).toLocaleDateString()}</td>
             <td class="py-4 px-6">
                 <erp-status-badge status="${po.status}"></erp-status-badge>
@@ -1373,9 +1373,9 @@ async function loadInvoices() {
             <td class="py-4 px-6 font-bold text-slate-800 font-mono">${inv.invoice_number}</td>
             <td class="py-4 px-6 font-mono text-xs">${inv.po.po_number}</td>
             <td class="py-4 px-6 font-semibold text-slate-800">${inv.po.vendor.company_name}</td>
-            <td class="py-4 px-6 font-medium">$${inv.subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-            <td class="py-4 px-6 text-slate-500">$${inv.tax.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
-            <td class="py-4 px-6 font-bold text-slate-900">$${inv.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="py-4 px-6 font-medium">Rs. ${inv.subtotal.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="py-4 px-6 text-slate-500">Rs. ${inv.tax.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+            <td class="py-4 px-6 font-bold text-slate-900">Rs. ${inv.total.toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
             <td class="py-4 px-6 text-slate-500">${new Date(inv.generated_at).toLocaleDateString()}</td>
             <td class="py-4 px-6 text-right">
                 <button onclick="downloadPDF(${inv.id})" class="text-brand-600 hover:text-brand-800 font-bold flex items-center justify-end w-full">
@@ -1408,7 +1408,7 @@ async function triggerInvoiceModal() {
     acceptedPOs.forEach(po => {
         const opt = document.createElement('option');
         opt.value = po.id;
-        opt.textContent = `${po.po_number} - ${po.vendor.company_name} ($${po.amount.toLocaleString()})`;
+        opt.textContent = `${po.po_number} - ${po.vendor.company_name} (Rs. ${po.amount.toLocaleString()})`;
         select.appendChild(opt);
     });
     
@@ -1623,7 +1623,7 @@ function loadProfile() {
 
     const compEl = document.getElementById('profile-detail-company');
     if (compEl) {
-        compEl.textContent = state.user.company_name || 'My Company (San Francisco)';
+        compEl.textContent = state.user.company_name || 'My Company (New Delhi)';
     }
 }
 

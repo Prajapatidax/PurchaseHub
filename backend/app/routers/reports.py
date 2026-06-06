@@ -130,14 +130,14 @@ def export_reports_csv(
     writer.writerow(["Pending Approvals", kpis["pending_approvals"]])
     writer.writerow(["Purchase Orders Issued", kpis["purchase_orders"]])
     writer.writerow(["Invoices Generated", kpis["invoices_generated"]])
-    writer.writerow(["Accumulated Total Spend", f"${kpis['total_spend']:,.2f}"])
+    writer.writerow(["Accumulated Total Spend", f"Rs. {kpis['total_spend']:,.2f}"])
     writer.writerow([])
     
     # 2. Spend by Category
     writer.writerow(["SPEND BY CATEGORY"])
-    writer.writerow(["Category", "Spend Amount ($)"])
+    writer.writerow(["Category", "Spend Amount (Rs.)"])
     for item in data["category_spend"]:
-        writer.writerow([item["category"], f"${item['spend']:,.2f}"])
+        writer.writerow([item["category"], f"Rs. {item['spend']:,.2f}"])
     writer.writerow([])
     
     # 3. Vendor Performance

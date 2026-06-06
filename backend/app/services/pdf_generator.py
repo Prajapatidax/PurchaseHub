@@ -169,8 +169,8 @@ def generate_invoice_pdf(invoice_data: dict) -> bytes:
     items_header = [
         Paragraph("Item Description", table_header_style),
         Paragraph("Quantity", table_header_style),
-        Paragraph("Unit Price ($)", table_header_style),
-        Paragraph("Amount ($)", table_header_style)
+        Paragraph("Unit Price (Rs.)", table_header_style),
+        Paragraph("Amount (Rs.)", table_header_style)
     ]
     
     # Table rows
@@ -187,9 +187,9 @@ def generate_invoice_pdf(invoice_data: dict) -> bytes:
         # Spacer row
         ["", "", "", ""],
         # Calculations
-        ["", "", Paragraph("Subtotal:", body_bold), Paragraph(f"${invoice_data['subtotal']:,.2f}", body_style)],
-        ["", "", Paragraph("Tax (GST 18%):", body_bold), Paragraph(f"${invoice_data['tax']:,.2f}", body_style)],
-        ["", "", Paragraph("Total Amount:", body_bold), Paragraph(f"${invoice_data['total']:,.2f}", body_bold)]
+        ["", "", Paragraph("Subtotal:", body_bold), Paragraph(f"Rs. {invoice_data['subtotal']:,.2f}", body_style)],
+        ["", "", Paragraph("Tax (GST 18%):", body_bold), Paragraph(f"Rs. {invoice_data['tax']:,.2f}", body_style)],
+        ["", "", Paragraph("Total Amount:", body_bold), Paragraph(f"Rs. {invoice_data['total']:,.2f}", body_bold)]
     ]
     
     items_table = Table(items_data, colWidths=[280, 70, 90, 90])
@@ -377,8 +377,8 @@ def generate_po_pdf(po_data: dict) -> bytes:
     items_header = [
         Paragraph("Item / Product Specification", table_header_style),
         Paragraph("Quantity", table_header_style),
-        Paragraph("Unit Price ($)", table_header_style),
-        Paragraph("Total Amount ($)", table_header_style)
+        Paragraph("Unit Price (Rs.)", table_header_style),
+        Paragraph("Total Amount (Rs.)", table_header_style)
     ]
     
     item_row = [
@@ -392,7 +392,7 @@ def generate_po_pdf(po_data: dict) -> bytes:
         items_header,
         item_row,
         ["", "", "", ""],
-        ["", "", Paragraph("Grand Total:", body_bold), Paragraph(f"${po_data['total']:,.2f}", body_bold)]
+        ["", "", Paragraph("Grand Total:", body_bold), Paragraph(f"Rs. {po_data['total']:,.2f}", body_bold)]
     ]
     
     items_table = Table(items_data, colWidths=[280, 70, 90, 90])
@@ -543,7 +543,7 @@ def generate_procurement_report_pdf(report_data: dict) -> bytes:
             Paragraph("<b>Invoices Generated:</b>", body_style),
             Paragraph(str(report_data['kpis']['invoices_generated']), body_style),
             Paragraph("<b>Accumulated Total Spend:</b>", body_bold),
-            Paragraph(f"${report_data['kpis']['total_spend']:,.2f}", body_bold)
+            Paragraph(f"Rs. {report_data['kpis']['total_spend']:,.2f}", body_bold)
         ]
     ]
     kpi_table = Table(kpi_data, colWidths=[150, 100, 150, 110])
@@ -561,16 +561,16 @@ def generate_procurement_report_pdf(report_data: dict) -> bytes:
     story.append(Paragraph("Procurement Spend by Category", section_heading))
     cat_header = [
         Paragraph("Product/Service Category", table_header_style),
-        Paragraph("Total Spend Amount ($)", table_header_style)
+        Paragraph("Total Spend Amount (Rs.)", table_header_style)
     ]
     cat_rows = []
     for item in report_data['category_spend']:
         cat_rows.append([
             Paragraph(item['category'], body_style),
-            Paragraph(f"${item['spend']:,.2f}", body_style)
+            Paragraph(f"Rs. {item['spend']:,.2f}", body_style)
         ])
     
-    cat_table_data = [cat_header] + (cat_rows if cat_rows else [["No spend recorded", "$0.00"]])
+    cat_table_data = [cat_header] + (cat_rows if cat_rows else [["No spend recorded", "Rs. 0.00"]])
     cat_table = Table(cat_table_data, colWidths=[260, 250])
     cat_table.setStyle(TableStyle([
         ('BACKGROUND', (0,0), (-1,0), colors.HexColor('#714B67')),

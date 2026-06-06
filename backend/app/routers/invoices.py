@@ -74,7 +74,7 @@ def generate_invoice(
     # Log activity
     log = models.ActivityLog(
         user_id=current_user.id,
-        action=f"Generated Invoice {invoice_number} for PO {po.po_number} (Total: ${total:,.2f}, Tax rate: {tax_rate}%)."
+        action=f"Generated Invoice {invoice_number} for PO {po.po_number} (Total: Rs. {total:,.2f}, Tax rate: {tax_rate}%)."
     )
     db.add(log)
     
@@ -86,9 +86,9 @@ def generate_invoice(
             f"Dear {po.vendor.company_name} Team,\n\n"
             f"Invoice {invoice_number} has been successfully generated for Purchase Order {po.po_number}.\n\n"
             f"Invoice Details:\n"
-            f"- Subtotal: ${subtotal:,.2f}\n"
-            f"- Tax (GST {tax_rate}%): ${tax:,.2f}\n"
-            f"- Grand Total: ${total:,.2f}\n\n"
+            f"- Subtotal: Rs. {subtotal:,.2f}\n"
+            f"- Tax (GST {tax_rate}%): Rs. {tax:,.2f}\n"
+            f"- Grand Total: Rs. {total:,.2f}\n\n"
             f"You can download the PDF copy from the VendorBridge portal.\n\n"
             f"Best regards,\nAccounts Department\nPurchaseHub Enterprise"
         )

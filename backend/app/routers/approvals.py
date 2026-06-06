@@ -76,7 +76,7 @@ def submit_approval(
         )
         log_po = models.ActivityLog(
             user_id=None, # System generated
-            action=f"System generated Purchase Order {po_number} for Vendor '{winning_quote.vendor.company_name}' (Amount: ${winning_quote.price:,.2f})."
+            action=f"System generated Purchase Order {po_number} for Vendor '{winning_quote.vendor.company_name}' (Amount: Rs. {winning_quote.price:,.2f})."
         )
         db.add(log_rfq)
         db.add(log_po)
@@ -88,7 +88,7 @@ def submit_approval(
             body=(
                 f"Dear {winning_quote.vendor.company_name} Team,\n\n"
                 f"We are pleased to inform you that your quotation for RFQ #{rfq.id} ({rfq.title}) has been approved!\n\n"
-                f"We have generated Purchase Order {po_number} for the amount of ${winning_quote.price:,.2f}.\n"
+                f"We have generated Purchase Order {po_number} for the amount of Rs. {winning_quote.price:,.2f}.\n"
                 f"Please log in to the Vendor Portal to accept the PO and submit your invoice.\n\n"
                 f"Thank you,\nProcurement Team\nPurchaseHub Enterprise"
             )

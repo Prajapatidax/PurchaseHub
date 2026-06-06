@@ -287,7 +287,7 @@
                     <!-- Company Switcher -->
                     <div class="flex items-center space-x-2 border-r border-slate-200 pr-4">
                         <i class="fa-solid fa-building text-slate-400 text-xs"></i>
-                        <span class="text-xs font-medium text-slate-600">My Company (San Francisco)</span>
+                        <span class="text-xs font-medium text-slate-600">My Company (New Delhi)</span>
                     </div>
 
                     <!-- Emails Log Modal trigger -->
@@ -336,7 +336,7 @@
                                 <span class="text-emerald-600 text-[10px] font-bold bg-emerald-50 px-1.5 py-0.5 rounded-full"><i class="fa-solid fa-trend-up"></i> +12%</span>
                             </div>
                             <div class="mt-4">
-                                <h3 class="text-xl font-bold text-slate-800" id="kpi-spend">$0.00</h3>
+                                <h3 class="text-xl font-bold text-slate-800" id="kpi-spend">Rs. 0.00</h3>
                                 <span class="text-[10px] text-slate-400 mt-0.5 block">Accumulated POs</span>
                             </div>
                         </div>
@@ -547,7 +547,7 @@
                                 <div>
                                     <span class="text-xs text-emerald-600 font-bold uppercase block">Best Offer (Lowest Price)</span>
                                     <h4 class="text-base font-bold text-slate-850 mt-0.5" id="highlight-lowest-vendor">-</h4>
-                                    <span class="text-xs text-slate-500" id="highlight-lowest-value">$0.00</span>
+                                    <span class="text-xs text-slate-500" id="highlight-lowest-value">Rs. 0.00</span>
                                 </div>
                             </div>
 
@@ -606,7 +606,7 @@
                                         <th class="py-3.5 px-6">PO Number</th>
                                         <th class="py-3.5 px-6">Vendor Name</th>
                                         <th class="py-3.5 px-6">RFQ Ref</th>
-                                        <th class="py-3.5 px-6">Amount ($)</th>
+                                        <th class="py-3.5 px-6">Amount (Rs.)</th>
                                         <th class="py-3.5 px-6">Created Date</th>
                                         <th class="py-3.5 px-6">Status</th>
                                         <th class="py-3.5 px-6 text-right">Actions</th>
@@ -636,9 +636,9 @@
                                         <th class="py-3.5 px-6">Invoice Number</th>
                                         <th class="py-3.5 px-6">PO Number</th>
                                         <th class="py-3.5 px-6">Vendor Company</th>
-                                        <th class="py-3.5 px-6">Subtotal ($)</th>
-                                        <th class="py-3.5 px-6">Tax ($)</th>
-                                        <th class="py-3.5 px-6">Grand Total ($)</th>
+                                        <th class="py-3.5 px-6">Subtotal (Rs.)</th>
+                                        <th class="py-3.5 px-6">Tax (Rs.)</th>
+                                        <th class="py-3.5 px-6">Grand Total (Rs.)</th>
                                         <th class="py-3.5 px-6">Date Issued</th>
                                         <th class="py-3.5 px-6 text-right">PDF</th>
                                     </tr>
@@ -732,11 +732,11 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div>
                                     <label>Company Name</label>
-                                    <input type="text" id="settings-company-name" value="My Company (San Francisco)">
+                                    <input type="text" id="settings-company-name" value="My Company (New Delhi)">
                                 </div>
                                 <div>
                                     <label>GSTIN / Tax Registration</label>
-                                    <input type="text" id="settings-company-gst" value="GST-US940219">
+                                    <input type="text" id="settings-company-gst" value="07AAAAA1111A1Z1">
                                 </div>
                             </div>
                         </div>
@@ -770,7 +770,7 @@
                                 </div>
 
                                 <div class="setting-item-box flex-col">
-                                    <label class="font-bold text-slate-800">Manager Approval Limit ($)</label>
+                                    <label class="font-bold text-slate-800">Manager Approval Limit (Rs.)</label>
                                     <input type="number" id="settings-approval-limit" value="10000" class="mt-1 w-full max-w-[200px]">
                                     <p class="text-[10px] text-slate-400 mt-1">POs above this amount require formal manager authorization before going active.</p>
                                 </div>
@@ -840,7 +840,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label>Phone Number</label>
-                        <input type="text" id="v-phone" required placeholder="+1 (555) 000-0000">
+                        <input type="text" id="v-phone" required placeholder="+91 99999 99999">
                     </div>
                     <div id="v-rating-container" class="hidden">
                         <label>Quality Rating (0-5)</label>
@@ -927,7 +927,7 @@
             <form id="quote-form" class="p-6 space-y-4">
                 <input type="hidden" id="q-rfq-id">
                 <div>
-                    <label>Total Bid Price ($)</label>
+                    <label>Total Bid Price (Rs.)</label>
                     <input type="number" min="1" id="q-price" required placeholder="e.g. 45000">
                 </div>
                 <div>

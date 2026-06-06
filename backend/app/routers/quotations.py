@@ -113,7 +113,7 @@ def submit_quotation(
     # Log activity
     log = models.ActivityLog(
         user_id=current_user.id,
-        action=f"User '{current_user.name}' submitted/updated quotation #{quote.id} for RFQ #{rfq.id} (Price: ${quote.price:,.2f})."
+        action=f"User '{current_user.name}' submitted/updated quotation #{quote.id} for RFQ #{rfq.id} (Price: Rs. {quote.price:,.2f})."
     )
     db.add(log)
     db.commit()
@@ -216,7 +216,7 @@ def update_quotation(
     
     log = models.ActivityLog(
         user_id=current_user.id,
-        action=f"Updated Quotation #{quote.id} (Price: ${quote.price:,.2f}) for RFQ #{quote.rfq_id}."
+        action=f"Updated Quotation #{quote.id} (Price: Rs. {quote.price:,.2f}) for RFQ #{quote.rfq_id}."
     )
     db.add(log)
     db.commit()

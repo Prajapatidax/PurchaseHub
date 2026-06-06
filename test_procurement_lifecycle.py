@@ -72,10 +72,10 @@ class TestProcurementLifecycle(unittest.TestCase):
         # 1. Try to create duplicate vendor (same email)
         dup_email_payload = {
             "company_name": "Unique Name LLC",
-            "gst_number": "GST-UQ999999",
+            "gst_number": "29AABCU9999A1Z1",
             "category": "IT Hardware",
             "email": "bids@dell.com",  # Already exists in seeds
-            "phone": "+1 (800) 111-2222",
+            "phone": "+91 98765 43210",
             "address": "123 Main St"
         }
         response = self.client.post("/api/vendors/", json=dup_email_payload, headers=headers)
@@ -84,11 +84,11 @@ class TestProcurementLifecycle(unittest.TestCase):
 
         # 2. Try to create duplicate vendor (same company_name)
         dup_name_payload = {
-            "company_name": "Dell Technologies",  # Already exists in seeds
-            "gst_number": "GST-UQ999999",
+            "company_name": "Dell India Pvt. Ltd.",  # Already exists in seeds
+            "gst_number": "29AABCU9999A1Z1",
             "category": "IT Hardware",
             "email": "unique@dell.com",
-            "phone": "+1 (800) 111-2222",
+            "phone": "+91 98765 43210",
             "address": "123 Main St"
         }
         response = self.client.post("/api/vendors/", json=dup_name_payload, headers=headers)
@@ -98,10 +98,10 @@ class TestProcurementLifecycle(unittest.TestCase):
         # 3. Try to create duplicate vendor (same GSTIN)
         dup_gst_payload = {
             "company_name": "Unique Name LLC",
-            "gst_number": "GST-DL849203",  # Already exists in seeds (Dell)
+            "gst_number": "29AABCD1234A1Z5",  # Already exists in seeds (Dell)
             "category": "IT Hardware",
             "email": "unique@dell.com",
-            "phone": "+1 (800) 111-2222",
+            "phone": "+91 98765 43210",
             "address": "123 Main St"
         }
         response = self.client.post("/api/vendors/", json=dup_gst_payload, headers=headers)
@@ -109,11 +109,11 @@ class TestProcurementLifecycle(unittest.TestCase):
         self.assertIn("GSTIN number is already registered", response.json()["detail"])
 
         # 4. Try updating an existing vendor to a duplicate company_name
-        hp_vendor = self.db.query(models.Vendor).filter(models.Vendor.company_name == "HP Enterprise").first()
+        hp_vendor = self.db.query(models.Vendor).filter(models.Vendor.company_name == "HP India Sales Pvt. Ltd.").first()
         self.assertIsNotNone(hp_vendor)
         
         update_payload = {
-            "company_name": "Dell Technologies"  # Try to rename HP Enterprise to Dell Technologies
+            "company_name": "Dell India Pvt. Ltd."  # Try to rename HP India Sales Pvt. Ltd. to Dell India Pvt. Ltd.
         }
         response = self.client.put(f"/api/vendors/{hp_vendor.id}", json=update_payload, headers=headers)
         self.assertEqual(response.status_code, 400)
@@ -157,8 +157,8 @@ class TestProcurementLifecycle(unittest.TestCase):
         self.assertIn("deadline must be in the future", response.json()["detail"])
 
         # 3. Valid RFQ creation
-        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell Technologies").first()
-        hp = self.db.query(models.Vendor).filter(models.Vendor.company_name == "HP Enterprise").first()
+        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell India Pvt. Ltd.").first()
+        hp = self.db.query(models.Vendor).filter(models.Vendor.company_name == "HP India Sales Pvt. Ltd.").first()
         
         rfq_payload["deadline"] = (datetime.datetime.utcnow() + datetime.timedelta(days=5)).isoformat()
         rfq_payload["assigned_vendor_ids"] = [dell.id, hp.id]
@@ -175,7 +175,7 @@ class TestProcurementLifecycle(unittest.TestCase):
         officer_token = self.get_token("officer@vendorbridge.com", "officerpassword")
         officer_headers = {"Authorization": f"Bearer {officer_token}"}
         
-        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell Technologies").first()
+        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell India Pvt. Ltd.").first()
         
         rfq_payload = {
             "title": "RFQ for Monitored Bid",
@@ -239,8 +239,8 @@ class TestProcurementLifecycle(unittest.TestCase):
         officer_token = self.get_token("officer@vendorbridge.com", "officerpassword")
         officer_headers = {"Authorization": f"Bearer {officer_token}"}
         
-        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell Technologies").first()
-        hp = self.db.query(models.Vendor).filter(models.Vendor.company_name == "HP Enterprise").first()
+        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell India Pvt. Ltd.").first()
+        hp = self.db.query(models.Vendor).filter(models.Vendor.company_name == "HP India Sales Pvt. Ltd.").first()
         
         rfq_payload = {
             "title": "Corporate Laptops Batch A",
@@ -403,7 +403,7 @@ class TestProcurementLifecycle(unittest.TestCase):
         officer_headers = {"Authorization": f"Bearer {officer_token}"}
         
         # 1. Fetch vendor and RFQ for manual quote creation
-        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell Technologies").first()
+        dell = self.db.query(models.Vendor).filter(models.Vendor.company_name == "Dell India Pvt. Ltd.").first()
         rfq = self.db.query(models.RFQ).filter(models.RFQ.title == "Corporate Laptops Batch A").first()
         self.assertIsNotNone(dell)
         self.assertIsNotNone(rfq)
