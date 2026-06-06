@@ -64,6 +64,10 @@ def signup_page():
 def forgot_password_page():
     return os.path.join(frontend_dir, "pages", "forgot-password.html")
 
+@app.get("/reset-password", response_class=FileResponse)
+def reset_password_page():
+    return os.path.join(frontend_dir, "pages", "reset-password.html")
+
 @app.get("/dashboard", response_class=FileResponse)
 def dashboard_page():
     return os.path.join(frontend_dir, "pages", "dashboard.html")

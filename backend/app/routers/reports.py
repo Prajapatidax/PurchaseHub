@@ -1,14 +1,17 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from typing import List, Dict
 import datetime
+import csv
+import io
 from collections import defaultdict
 
 from backend.app.database import get_db
 from backend.app import models, schemas
 from backend.app.routers.auth import get_current_user, RoleChecker
 from backend.app.services.email_mock import get_sent_emails
+from backend.app.services.pdf_generator import generate_procurement_report_pdf
 
 router = APIRouter(prefix="/reports", tags=["Reports & Analytics"])
 
@@ -106,3 +109,67 @@ def get_system_mock_emails(
     current_user: models.User = Depends(RoleChecker(["Admin", "Procurement Officer"]))
 ):
     return get_sent_emails()
+
+@router.get("/export/csv")
+def export_reports_csv(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(RoleChecker(["Admin", "Procurement Officer", "Manager"]))
+):
+    data = get_reports_and_analytics(db=db, current_user=current_user)
+    
+    # Generate CSV content
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # 1. KPIs
+    writer.writerow(["KEY PERFORMANCE METRICS"])
+    writer.writerow(["Metric", "Value"])
+    kpis = data["kpis"]
+    writer.writerow(["Total Vendors", kpis["total_vendors"]])
+    writer.writerow(["Active Bidding RFQs", kpis["active_rfqs"]])
+    writer.writerow(["Pending Approvals", kpis["pending_approvals"]])
+    writer.writerow(["Purchase Orders Issued", kpis["purchase_orders"]])
+    writer.writerow(["Invoices Generated", kpis["invoices_generated"]])
+    writer.writerow(["Accumulated Total Spend", f"${kpis['total_spend']:,.2f}"])
+    writer.writerow([])
+    
+    # 2. Spend by Category
+    writer.writerow(["SPEND BY CATEGORY"])
+    writer.writerow(["Category", "Spend Amount ($)"])
+    for item in data["category_spend"]:
+        writer.writerow([item["category"], f"${item['spend']:,.2f}"])
+    writer.writerow([])
+    
+    # 3. Vendor Performance
+    writer.writerow(["VENDOR PERFORMANCE LEDGER"])
+    writer.writerow(["Company Name", "Rating (0-5)", "Quotes Submitted", "Reliability Index"])
+    for item in data["vendor_performance"]:
+        score = f"{item['rating'] * 20:.0f}%"
+        writer.writerow([item["company_name"], f"{item['rating']:.1f}", item["quote_count"], score])
+        
+    csv_content = output.getvalue()
+    output.close()
+    
+    return Response(
+        content=csv_content,
+        media_type="text/csv",
+        headers={
+            "Content-Disposition": "attachment; filename=procurement_report.csv"
+        }
+    )
+
+@router.get("/export/pdf")
+def export_reports_pdf(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(RoleChecker(["Admin", "Procurement Officer", "Manager"]))
+):
+    data = get_reports_and_analytics(db=db, current_user=current_user)
+    pdf_bytes = generate_procurement_report_pdf(data)
+    
+    return Response(
+        content=pdf_bytes,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": "attachment; filename=procurement_report.pdf"
+        }
+    )

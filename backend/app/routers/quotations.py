@@ -15,6 +15,13 @@ def submit_quotation(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(RoleChecker(["Vendor"]))
 ):
+    # Check fields
+    if quote_in.price <= 0:
+        raise HTTPException(status_code=400, detail="Quotation price must be greater than 0.")
+        
+    if quote_in.delivery_days <= 0:
+        raise HTTPException(status_code=400, detail="Delivery days must be greater than 0.")
+
     # Find the vendor profile associated with the current user
     vendor = db.query(models.Vendor).filter(models.Vendor.email == current_user.email).first()
     if not vendor:
@@ -28,6 +35,11 @@ def submit_quotation(
     if not rfq:
         raise HTTPException(status_code=404, detail="RFQ not found")
         
+    # Validate deadline
+    rfq_deadline_naive = rfq.deadline.replace(tzinfo=None)
+    if datetime.datetime.utcnow() >= rfq_deadline_naive:
+        raise HTTPException(status_code=400, detail="Cannot submit quotation. The bidding deadline for this RFQ has passed.")
+
     if rfq.status not in ["Open", "Quotation Received"]:
         raise HTTPException(
             status_code=400, 

@@ -54,6 +54,13 @@ def create_rfq(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(RoleChecker(["Admin", "Procurement Officer"]))
 ):
+    if rfq_in.quantity <= 0:
+        raise HTTPException(status_code=400, detail="RFQ quantity must be greater than 0.")
+        
+    deadline_naive = rfq_in.deadline.replace(tzinfo=None)
+    if deadline_naive <= datetime.datetime.utcnow():
+        raise HTTPException(status_code=400, detail="RFQ deadline must be in the future.")
+
     # Prepare base RFQ fields
     rfq_data = rfq_in.dict(exclude={"assigned_vendor_ids"})
     rfq = models.RFQ(
@@ -89,6 +96,14 @@ def update_rfq(
     rfq = db.query(models.RFQ).filter(models.RFQ.id == rfq_id).first()
     if not rfq:
         raise HTTPException(status_code=404, detail="RFQ not found")
+        
+    if rfq_in.quantity is not None and rfq_in.quantity <= 0:
+        raise HTTPException(status_code=400, detail="RFQ quantity must be greater than 0.")
+        
+    if rfq_in.deadline is not None:
+        deadline_naive = rfq_in.deadline.replace(tzinfo=None)
+        if deadline_naive <= datetime.datetime.utcnow():
+            raise HTTPException(status_code=400, detail="RFQ deadline must be in the future.")
         
     update_data = rfq_in.dict(exclude_unset=True, exclude={"assigned_vendor_ids"})
     for field, value in update_data.items():

@@ -44,10 +44,18 @@ def create_vendor(
     db: Session = Depends(get_db),
     current_user: models.User = Depends(RoleChecker(["Admin", "Procurement Officer"]))
 ):
-    # Check if duplicate email
-    dup = db.query(models.Vendor).filter(models.Vendor.email == vendor_in.email).first()
-    if dup:
+    # Check if duplicate email, company name, or GSTIN
+    dup_email = db.query(models.Vendor).filter(models.Vendor.email == vendor_in.email).first()
+    if dup_email:
         raise HTTPException(status_code=400, detail="Vendor email is already registered.")
+        
+    dup_name = db.query(models.Vendor).filter(models.Vendor.company_name == vendor_in.company_name).first()
+    if dup_name:
+        raise HTTPException(status_code=400, detail="Vendor company name is already registered.")
+        
+    dup_gst = db.query(models.Vendor).filter(models.Vendor.gst_number == vendor_in.gst_number).first()
+    if dup_gst:
+        raise HTTPException(status_code=400, detail="Vendor GSTIN number is already registered.")
 
     vendor = models.Vendor(**vendor_in.dict())
     db.add(vendor)
@@ -80,6 +88,22 @@ def update_vendor(
                     
     if not is_authorized:
         raise HTTPException(status_code=403, detail="Not authorized to edit this vendor profile.")
+        
+    # Check duplicates for update
+    if vendor_in.email:
+        dup_email = db.query(models.Vendor).filter(models.Vendor.email == vendor_in.email, models.Vendor.id != vendor_id).first()
+        if dup_email:
+            raise HTTPException(status_code=400, detail="Vendor email is already registered.")
+            
+    if vendor_in.company_name:
+        dup_name = db.query(models.Vendor).filter(models.Vendor.company_name == vendor_in.company_name, models.Vendor.id != vendor_id).first()
+        if dup_name:
+            raise HTTPException(status_code=400, detail="Vendor company name is already registered.")
+            
+    if vendor_in.gst_number:
+        dup_gst = db.query(models.Vendor).filter(models.Vendor.gst_number == vendor_in.gst_number, models.Vendor.id != vendor_id).first()
+        if dup_gst:
+            raise HTTPException(status_code=400, detail="Vendor GSTIN number is already registered.")
         
     update_data = vendor_in.dict(exclude_unset=True)
     for field, value in update_data.items():

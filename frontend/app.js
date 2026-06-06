@@ -238,7 +238,7 @@ async function apiRequest(endpoint, options = {}) {
         }
         
         // Handle PDF downloads
-        if (endpoint.endsWith('/download')) {
+        if (endpoint.endsWith('/download') || endpoint.includes('/export/')) {
              return response;
         }
         
@@ -1336,36 +1336,48 @@ async function loadAnalytics() {
     });
 }
 
-function exportToCSV() {
-    // Basic CSV exporter for demo
-    const rows = [
-        ["Vendor Name", "Rating", "Total Quotes"]
-    ];
-    
-    const table = document.getElementById('vendor-performance-table');
-    const trs = table.querySelectorAll('tbody tr');
-    
-    trs.forEach(tr => {
-        const cols = tr.querySelectorAll('td');
-        if (cols.length >= 3) {
-            const name = cols[0].innerText;
-            const rating = cols[1].innerText.trim().split(" ")[1] || "5.0";
-            const quotes = cols[2].innerText.trim();
-            rows.push([name, rating, quotes]);
-        }
-    });
-    
-    let csvContent = "data:text/csv;charset=utf-8," 
-        + rows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(",")).join("\n");
+async function exportToCSV() {
+    showToast("Generating CSV report...", "info");
+    try {
+        const response = await apiRequest(`/reports/export/csv`);
+        if (!response) return;
         
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "vendor_performance_report.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    showToast("CSV report exported successfully!", "success");
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `procurement_report.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast("CSV report downloaded successfully!", "success");
+    } catch(err) {
+        console.error(err);
+        showToast("Failed to download CSV report", "error");
+    }
+}
+
+async function exportToPDF() {
+    showToast("Compiling PDF report...", "info");
+    try {
+        const response = await apiRequest(`/reports/export/pdf`);
+        if (!response) return;
+        
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `procurement_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast("PDF report downloaded successfully!", "success");
+    } catch(err) {
+        console.error(err);
+        showToast("Failed to download PDF report", "error");
+    }
 }
 
 // 10. Load Audit Trail Logs

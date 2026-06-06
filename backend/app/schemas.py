@@ -224,3 +224,9 @@ class ReportsResponse(BaseModel):
     monthly_spend: List[MonthlySpendTrendItem]
     vendor_performance: List[VendorPerformanceItem]
     category_spend: List[SpendByCategoryItem]
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    token: str
+    new_password: str
+

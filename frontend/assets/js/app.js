@@ -46,7 +46,7 @@ async function apiRequest(endpoint, options = {}) {
             handleLogout();
             return null;
         }
-        if (endpoint.endsWith('/download')) {
+        if (endpoint.endsWith('/download') || endpoint.includes('/export/')) {
              return response;
         }
         
@@ -723,6 +723,9 @@ async function loadComparisonData() {
     
     if (detailsSec) detailsSec.classList.remove('hidden');
     
+    state.currentComparisonQuotes = quotes;
+    state.currentComparisonRFQ = rfqDetails;
+    
     let lowestQuote = quotes[0];
     let fastestQuote = quotes[0];
     
@@ -730,6 +733,9 @@ async function loadComparisonData() {
         if (q.price < lowestQuote.price) lowestQuote = q;
         if (q.delivery_days < fastestQuote.delivery_days) fastestQuote = q;
     });
+    
+    state.lowestQuote = lowestQuote;
+    state.fastestQuote = fastestQuote;
     
     const lowestVendor = document.getElementById('highlight-lowest-vendor');
     if (lowestVendor) lowestVendor.textContent = lowestQuote.vendor.company_name;
@@ -743,13 +749,57 @@ async function loadComparisonData() {
     const fastestValue = document.getElementById('highlight-fastest-value');
     if (fastestValue) fastestValue.textContent = `${fastestQuote.delivery_days} Days`;
     
+    // Reset inputs
+    const sortSelect = document.getElementById('compare-sort-select');
+    if (sortSelect) sortSelect.value = 'price-asc';
+    const filterInput = document.getElementById('compare-vendor-filter');
+    if (filterInput) filterInput.value = '';
+    
+    sortAndFilterComparisonData();
+}
+
+function sortAndFilterComparisonData() {
+    if (!state.currentComparisonQuotes || !state.currentComparisonRFQ) return;
+    
+    const sortVal = document.getElementById('compare-sort-select') ? document.getElementById('compare-sort-select').value : 'price-asc';
+    const filterVal = document.getElementById('compare-vendor-filter') ? document.getElementById('compare-vendor-filter').value.toLowerCase().trim() : '';
+    
+    let quotes = [...state.currentComparisonQuotes];
+    
+    // 1. Filter
+    if (filterVal) {
+        quotes = quotes.filter(q => q.vendor.company_name.toLowerCase().includes(filterVal));
+    }
+    
+    // 2. Sort
+    quotes.sort((a, b) => {
+        if (sortVal === 'price-asc') return a.price - b.price;
+        if (sortVal === 'price-desc') return b.price - a.price;
+        if (sortVal === 'days-asc') return a.delivery_days - b.delivery_days;
+        if (sortVal === 'days-desc') return b.delivery_days - a.delivery_days;
+        return 0;
+    });
+    
+    renderComparisonCards(quotes);
+}
+
+function renderComparisonCards(quotes) {
     const grid = document.getElementById('comparison-cards-grid');
     if (!grid) return;
     grid.innerHTML = '';
     
+    if (quotes.length === 0) {
+        grid.innerHTML = `<div class="col-span-full py-8 text-center text-slate-400">No matching vendor quotations.</div>`;
+        return;
+    }
+    
+    const rfqDetails = state.currentComparisonRFQ;
+    const lowestQuote = state.lowestQuote;
+    const fastestQuote = state.fastestQuote;
+    
     quotes.forEach(q => {
-        const isLowest = q.id === lowestQuote.id;
-        const isFastest = q.id === fastestQuote.id;
+        const isLowest = lowestQuote && q.id === lowestQuote.id;
+        const isFastest = fastestQuote && q.id === fastestQuote.id;
         
         let badges = '';
         if (isLowest) badges += `<span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded-full mr-1.5"><i class="fa-solid fa-dollar-sign"></i> Lowest</span>`;
@@ -765,7 +815,7 @@ async function loadComparisonData() {
                 actionBtn = `<div class="text-slate-400 text-center text-xs py-2">Workflow Locked</div>`;
             }
         } else {
-            actionBtn = `<button onclick="selectWinner(${rfqDetails.id}, ${q.id})" class="w-full bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2 rounded-lg text-xs transition-colors shadow">Select Winner & Approve</button>`;
+            actionBtn = `<button onclick="selectWinner(${rfqDetails.id}, ${q.id})" class="w-full bg-[#714B67] hover:bg-[#875A7B] text-white font-semibold py-2 rounded-lg text-xs transition-colors shadow">Select Winner & Approve</button>`;
         }
         
         const card = document.createElement('div');
@@ -956,15 +1006,29 @@ async function loadPurchaseOrders() {
     const role = state.user.role;
     
     pos.forEach(po => {
+        let downloadBtn = `<button onclick="downloadPOPDF(${po.id})" class="text-brand-700 hover:text-brand-600 font-bold ml-3" title="Download PO PDF"><i class="fa-solid fa-file-pdf text-red-500 mr-1 text-sm"></i> PDF</button>`;
+        
         let actionHTML = '';
         if (role === 'Vendor' && po.status === 'Generated') {
-             actionHTML = `<button onclick="acceptPO(${po.id})" class="bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded font-semibold text-xs transition-colors"><i class="fa-solid fa-thumbs-up"></i> Accept PO</button>`;
+             actionHTML = `<div class="flex items-center justify-end space-x-2">
+                 <button onclick="acceptPO(${po.id})" class="bg-[#714B67] hover:bg-[#875A7B] text-white px-3 py-1.5 rounded font-semibold text-xs transition-colors"><i class="fa-solid fa-thumbs-up"></i> Accept</button>
+                 ${downloadBtn}
+             </div>`;
         } else if (role === 'Procurement Officer' && po.status === 'Generated') {
-             actionHTML = `<button onclick="sendPO(${po.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold text-xs transition-colors"><i class="fa-solid fa-paper-plane text-indigo-500 mr-1"></i> Send PO</button>`;
+             actionHTML = `<div class="flex items-center justify-end space-x-2">
+                 <button onclick="sendPO(${po.id})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded font-semibold text-xs transition-colors"><i class="fa-solid fa-paper-plane text-indigo-500 mr-1"></i> Send</button>
+                 ${downloadBtn}
+             </div>`;
         } else if (po.status === 'Accepted') {
-             actionHTML = `<span class="text-emerald-600 text-xs font-bold"><i class="fa-solid fa-circle-check"></i> Accepted</span>`;
+             actionHTML = `<div class="flex items-center justify-end space-x-2">
+                 <span class="text-emerald-600 text-xs font-bold"><i class="fa-solid fa-circle-check"></i> Accepted</span>
+                 ${downloadBtn}
+             </div>`;
         } else {
-             actionHTML = `<span class="text-slate-400 text-xs">Waiting Action</span>`;
+             actionHTML = `<div class="flex items-center justify-end space-x-2">
+                 <span class="text-slate-400 text-xs">Sent</span>
+                 ${downloadBtn}
+             </div>`;
         }
         
         const tr = document.createElement('tr');
@@ -1007,6 +1071,28 @@ async function sendPO(poId) {
     if (result) {
          showToast('PO status updated to Sent.', 'success');
          loadPurchaseOrders();
+    }
+}
+
+async function downloadPOPDF(poId) {
+    showToast("Compiling PDF Purchase Order...", "info");
+    try {
+        const response = await apiRequest(`/purchase-orders/${poId}/download`);
+        if (!response) return;
+        
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `purchase_order_${poId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast("PDF Purchase Order downloaded successfully!", "success");
+    } catch(err) {
+        console.error(err);
+        showToast("Failed to download PDF Purchase Order", "error");
     }
 }
 
@@ -1182,36 +1268,48 @@ async function loadAnalytics() {
     });
 }
 
-function exportToCSV() {
-    const rows = [
-        ["Vendor Name", "Rating", "Total Quotes"]
-    ];
-    
-    const table = document.getElementById('vendor-performance-table');
-    if (!table) return;
-    const trs = table.querySelectorAll('tbody tr');
-    
-    trs.forEach(tr => {
-        const cols = tr.querySelectorAll('td');
-        if (cols.length >= 3) {
-            const name = cols[0].innerText;
-            const rating = cols[1].innerText.trim().split(" ")[1] || "5.0";
-            const quotes = cols[2].innerText.trim();
-            rows.push([name, rating, quotes]);
-        }
-    });
-    
-    let csvContent = "data:text/csv;charset=utf-8," 
-        + rows.map(e => e.map(val => `"${val.replace(/"/g, '""')}"`).join(",")).join("\n");
+async function exportToCSV() {
+    showToast("Generating CSV report...", "info");
+    try {
+        const response = await apiRequest(`/reports/export/csv`);
+        if (!response) return;
         
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "vendor_performance_report.csv");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    showToast("CSV report exported successfully!", "success");
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `procurement_report.csv`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast("CSV report downloaded successfully!", "success");
+    } catch(err) {
+        console.error(err);
+        showToast("Failed to download CSV report", "error");
+    }
+}
+
+async function exportToPDF() {
+    showToast("Compiling PDF report...", "info");
+    try {
+        const response = await apiRequest(`/reports/export/pdf`);
+        if (!response) return;
+        
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `procurement_report.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast("PDF report downloaded successfully!", "success");
+    } catch(err) {
+        console.error(err);
+        showToast("Failed to download PDF report", "error");
+    }
 }
 
 // 10. Audit Activity Logs
@@ -1379,6 +1477,30 @@ function openCreateVendorModal(updateUrl = true) {
     form.reset();
     form.onsubmit = handleVendorSubmit; // Restore handle
     
+    // Inject status field if not present
+    let statusContainer = document.getElementById('v-status-container');
+    if (!statusContainer) {
+        const ratingContainer = document.getElementById('v-rating-container');
+        if (ratingContainer) {
+            statusContainer = document.createElement('div');
+            statusContainer.id = 'v-status-container';
+            statusContainer.className = 'grid grid-cols-2 gap-4';
+            statusContainer.innerHTML = `
+                <div class="mb-3.5">
+                    <label for="v-status" class="block text-xs font-semibold text-slate-650 uppercase mb-1">Status</label>
+                    <select id="v-status" class="w-full text-sm py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#714B67]">
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+            `;
+            ratingContainer.parentNode.insertBefore(statusContainer, ratingContainer.nextSibling);
+        }
+    }
+    
+    if (statusContainer) statusContainer.classList.add('hidden'); // hidden on create, default Active
+    
     const title = document.getElementById('vendor-modal-title');
     if (title) title.textContent = 'Add Vendor Partner';
     
@@ -1486,6 +1608,34 @@ async function editVendor(vendorId, updateUrl = true) {
     if (!form) return;
     form.reset();
     
+    // Inject status field if not present
+    let statusContainer = document.getElementById('v-status-container');
+    if (!statusContainer) {
+        const ratingContainer = document.getElementById('v-rating-container');
+        if (ratingContainer) {
+            statusContainer = document.createElement('div');
+            statusContainer.id = 'v-status-container';
+            statusContainer.className = 'grid grid-cols-2 gap-4';
+            statusContainer.innerHTML = `
+                <div class="mb-3.5">
+                    <label for="v-status" class="block text-xs font-semibold text-slate-655 uppercase mb-1">Status</label>
+                    <select id="v-status" class="w-full text-sm py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#714B67]">
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+            `;
+            ratingContainer.parentNode.insertBefore(statusContainer, ratingContainer.nextSibling);
+        }
+    }
+    
+    if (statusContainer) {
+        statusContainer.classList.remove('hidden');
+        document.getElementById('v-status').value = v.status;
+        document.getElementById('v-status').removeAttribute('disabled');
+    }
+    
     const title = document.getElementById('vendor-modal-title');
     if (title) title.textContent = 'Modify Vendor Details';
     
@@ -1507,7 +1657,8 @@ async function editVendor(vendorId, updateUrl = true) {
             category: document.getElementById('v-category').value,
             email: document.getElementById('v-email').value,
             phone: document.getElementById('v-phone').value,
-            address: document.getElementById('v-address').value
+            address: document.getElementById('v-address').value,
+            status: document.getElementById('v-status') ? document.getElementById('v-status').value : 'Active'
         };
         const result = await apiRequest(`/vendors/${v.id}`, {
             method: 'PUT',
@@ -1535,6 +1686,33 @@ async function viewVendorDetails(vendorId, updateUrl = true) {
     const form = document.getElementById('vendor-form');
     if (!form) return;
     form.reset();
+    
+    // Inject status field if not present
+    let statusContainer = document.getElementById('v-status-container');
+    if (!statusContainer) {
+        const ratingContainer = document.getElementById('v-rating-container');
+        if (ratingContainer) {
+            statusContainer = document.createElement('div');
+            statusContainer.id = 'v-status-container';
+            statusContainer.className = 'grid grid-cols-2 gap-4';
+            statusContainer.innerHTML = `
+                <div class="mb-3.5">
+                    <label for="v-status" class="block text-xs font-semibold text-slate-655 uppercase mb-1">Status</label>
+                    <select id="v-status" class="w-full text-sm py-2 px-3 border border-slate-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#714B67]">
+                        <option value="Active">Active</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Suspended">Suspended</option>
+                    </select>
+                </div>
+            `;
+            ratingContainer.parentNode.insertBefore(statusContainer, ratingContainer.nextSibling);
+        }
+    }
+    
+    if (statusContainer) {
+        statusContainer.classList.remove('hidden');
+        document.getElementById('v-status').value = v.status;
+    }
     
     const title = document.getElementById('vendor-modal-title');
     if (title) title.textContent = 'Vendor Partner Details';

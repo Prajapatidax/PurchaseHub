@@ -44,11 +44,26 @@
             
             <main class="flex-1 overflow-y-auto p-8 relative" id="screen-container">
                 <div class="space-y-6">
-                    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm">
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select RFQ for quotation comparison</label>
-                        <select id="compare-rfq-select" onchange="loadComparisonData()" class="max-w-md">
-                            <!-- Populated dynamically with RFQs -->
-                        </select>
+                    <div class="bg-white p-6 rounded-lg border border-slate-200 shadow-sm flex flex-wrap gap-4 items-end">
+                        <div class="flex-1 min-w-[200px]">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Select RFQ for quotation comparison</label>
+                            <select id="compare-rfq-select" onchange="loadComparisonData()" class="w-full">
+                                <!-- Populated dynamically with RFQs -->
+                            </select>
+                        </div>
+                        <div class="w-48">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Sort by</label>
+                            <select id="compare-sort-select" onchange="sortAndFilterComparisonData()" class="w-full text-sm py-1.5 border border-slate-200 rounded-lg focus:outline-none">
+                                <option value="price-asc">Price: Low to High</option>
+                                <option value="price-desc">Price: High to Low</option>
+                                <option value="days-asc">Delivery: Fastest first</option>
+                                <option value="days-desc">Delivery: Slowest first</option>
+                            </select>
+                        </div>
+                        <div class="w-48">
+                            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Filter Vendor</label>
+                            <input type="text" id="compare-vendor-filter" onkeyup="sortAndFilterComparisonData()" placeholder="Vendor name..." class="w-full text-sm rounded-lg border border-slate-200 py-1.5 px-3 focus:outline-none focus:ring-1 focus:ring-[#714B67]">
+                        </div>
                     </div>
 
                     <div id="comparison-details-section" class="hidden space-y-6">

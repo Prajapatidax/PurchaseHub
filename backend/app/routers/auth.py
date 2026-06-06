@@ -154,7 +154,7 @@ def forgot_password(payload: dict, db: Session = Depends(get_db)):
         
     user = db.query(models.User).filter(models.User.email == email).first()
     if user:
-        reset_link = f"http://localhost:8000/#reset-password?email={email}&token=mock_reset_token"
+        reset_link = f"http://localhost:8000/reset-password?email={email}&token=mock_reset_token"
         send_email(
             to_email=email,
             subject="VendorBridge - Password Reset Request",
@@ -163,6 +163,23 @@ def forgot_password(payload: dict, db: Session = Depends(get_db)):
         
     # Return success message regardless of existence (security best practice)
     return {"message": "If the email exists in our system, a password reset link has been sent."}
+
+@router.post("/reset-password")
+def reset_password(req: schemas.ResetPasswordRequest, db: Session = Depends(get_db)):
+    if req.token != "mock_reset_token":
+        raise HTTPException(status_code=400, detail="Invalid or expired reset token.")
+        
+    user = db.query(models.User).filter(models.User.email == req.email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found.")
+        
+    user.password_hash = security.hash_password(req.new_password)
+    
+    log = models.ActivityLog(user_id=user.id, action=f"Reset password for user {user.name} ({user.role}).")
+    db.add(log)
+    db.commit()
+    
+    return {"message": "Password has been reset successfully."}
 
 @router.get("/me", response_model=schemas.UserResponse)
 def get_me(current_user: models.User = Depends(get_current_user)):
